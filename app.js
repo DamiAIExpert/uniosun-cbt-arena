@@ -416,8 +416,14 @@
     const expBox = document.getElementById('explanation-panel');
     const flagBtn = document.getElementById('flag-btn');
 
+    const shortSecTitles = {
+      'IT': 'IT & Computing',
+      'UNIOSUN': 'UNIOSUN & Osun',
+      'PEDAGOGY': 'Pedagogy & Ethics',
+      'APTITUDE': 'Current Affairs'
+    };
     if (qNumLabel) qNumLabel.textContent = `Question ${state.currentIdx + 1}`;
-    if (qSecTag) qSecTag.textContent = item.secTitle || item.sec;
+    if (qSecTag) qSecTag.textContent = shortSecTitles[item.sec] || item.secTitle || item.sec;
     if (qSubpart) qSubpart.textContent = item.part || '';
     if (qPrompt) qPrompt.textContent = item.q;
 
