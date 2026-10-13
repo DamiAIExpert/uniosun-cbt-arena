@@ -1,7 +1,7 @@
 // Service Worker for UNIOSUN CBT Arena
 // Provides 100% offline access in examination halls
 
-const CACHE_NAME = 'uniosun-cbt-v1';
+const CACHE_NAME = 'uniosun-cbt-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

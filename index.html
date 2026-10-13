@@ -31,7 +31,12 @@
     <!-- Top Mobile App Header (Conventional App Bar) -->
     <header class="app-header">
       <div class="header-left">
-        <div class="header-logo-badge">🏛️</div>
+        <div class="header-logo-badge" title="Osun State University">
+          <!-- Institutional Pillars SVG Icon -->
+          <svg class="ui-icon" viewBox="0 0 24 24">
+            <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/>
+          </svg>
+        </div>
         <div class="header-titles">
           <h1 class="header-title">UNIOSUN CBT</h1>
           <span class="header-subtitle">Regularisation 2026</span>
@@ -39,19 +44,32 @@
       </div>
 
       <div class="header-right">
-        <!-- Live Timer Badge -->
+        <!-- Live Timer Badge with Stopwatch SVG -->
         <div class="timer-pill" id="timer-pill" title="Exam Time Remaining">
-          ⏱️ <span id="stat-timer">25</span>s
+          <svg class="ui-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="13" r="8"/>
+            <path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3M10 2h4"/>
+          </svg>
+          <span id="stat-timer">25</span>s
         </div>
 
-        <!-- Audio Mute Toggle -->
+        <!-- Audio Mute Toggle with Volume SVG -->
         <button class="header-icon-btn" id="sound-toggle-btn" title="Toggle Audio Sound Effects">
-          <span id="sound-icon">🔊</span>
+          <span id="sound-icon-wrapper">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+          </span>
         </button>
 
-        <!-- Dark/Light Theme Toggle -->
+        <!-- Dark/Light Theme Toggle with Moon/Sun SVG -->
         <button class="header-icon-btn" id="theme-toggle-btn" title="Toggle Theme">
-          <span id="theme-icon">🌙</span>
+          <span id="theme-icon-wrapper">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+          </span>
         </button>
       </div>
     </header>
@@ -59,10 +77,17 @@
     <!-- Sub-header Mode Selector (Practice vs. Mock Exam) -->
     <div class="mode-selector-bar">
       <button class="mode-btn active" data-mode="PRACTICE" id="mode-btn-practice">
-        ⚡ <span>Practice Drill</span>
+        <svg class="ui-icon" style="width:14px;height:14px;" viewBox="0 0 24 24">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        <span>Practice Drill</span>
       </button>
       <button class="mode-btn" data-mode="EXAM" id="mode-btn-exam">
-        🏛️ <span>Mock CBT (60Q)</span>
+        <svg class="ui-icon" style="width:14px;height:14px;" viewBox="0 0 24 24">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+        </svg>
+        <span>Mock CBT (60Q)</span>
       </button>
     </div>
 
@@ -71,7 +96,6 @@
       
       <!-- ==================================================================
            SCREEN 1: CBT ARENA (EXAM & DRILL SCREEN)
-           Matches conventional mobile CBT layout (Screen 2 in reference image)
            ================================================================== -->
       <section class="app-screen active" id="screen-arena">
         
@@ -80,11 +104,11 @@
           <label for="pillar-select" class="dropdown-label">Pillar Domain:</label>
           <div class="select-container">
             <select id="pillar-select" class="pillar-select">
-              <option value="ALL">🌐 All Domains (200 Questions)</option>
-              <option value="IT">💻 1. Core IT &amp; Computing (80Q)</option>
-              <option value="UNIOSUN">🏛️ 2. UNIOSUN &amp; Osun Facts (50Q)</option>
-              <option value="PEDAGOGY">📚 3. Pedagogy &amp; Research Ethics (40Q)</option>
-              <option value="APTITUDE">🧠 4. Current Affairs &amp; Logic (30Q)</option>
+              <option value="ALL">All Domains (200 Questions)</option>
+              <option value="IT">1. Core IT &amp; Computing (80Q)</option>
+              <option value="UNIOSUN">2. UNIOSUN &amp; Osun Facts (50Q)</option>
+              <option value="PEDAGOGY">3. Pedagogy &amp; Research Ethics (40Q)</option>
+              <option value="APTITUDE">4. Current Affairs &amp; Logic (30Q)</option>
             </select>
           </div>
         </div>
@@ -99,10 +123,16 @@
             </div>
             <div class="q-card-actions">
               <button class="q-action-btn" id="flag-btn" title="Flag this question for review">
-                🚩 <span id="flag-btn-text">Flag</span>
+                <svg class="ui-icon" style="width:13px;height:13px;" viewBox="0 0 24 24">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>
+                </svg>
+                <span id="flag-btn-text">Flag</span>
               </button>
               <button class="q-action-btn" id="hint-btn" title="View Hint">
-                💡 Hint
+                <svg class="ui-icon" style="width:13px;height:13px;" viewBox="0 0 24 24">
+                  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/>
+                </svg>
+                Hint
               </button>
             </div>
           </div>
@@ -115,9 +145,9 @@
             Loading question bank...
           </div>
 
-          <!-- Inline Hint Panel (Revealed when hint lifeline used) -->
+          <!-- Inline Hint Panel -->
           <div class="hint-box" id="hint-panel" style="display: none;">
-            <strong>💡 Memory Clue:</strong> <span id="hint-text"></span>
+            <strong>Memory Clue:</strong> <span id="hint-text"></span>
           </div>
 
           <!-- Options Section Instruction -->
@@ -131,7 +161,7 @@
           <!-- Practice Mode Immediate Explanation Drawer -->
           <div class="explanation-box" id="explanation-panel" style="display: none;">
             <div class="exp-header" id="exp-header">
-              <span id="feedback-icon">✅</span> <span id="feedback-verdict">Correct!</span>
+              <span id="feedback-icon"></span> <span id="feedback-verdict">Correct!</span>
             </div>
             <div class="exp-body" id="explanation-text">
               <!-- Explanation details -->
@@ -139,21 +169,30 @@
           </div>
         </div>
 
-        <!-- Practice Lifelines Bar -->
+        <!-- Practice Lifelines Bar with Vector SVGs -->
         <div class="lifelines-bar" id="lifelines-bar">
           <span class="lifelines-label">Lifelines:</span>
           <button class="lifeline-pill" id="lifeline-5050" title="Eliminate 2 wrong answers">
-            ⚡ 50:50 (<span id="count-5050">3</span>)
+            <svg class="ui-icon" style="color:#d97706;width:14px;height:14px;" viewBox="0 0 24 24">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <span>50:50 (<span id="count-5050">3</span>)</span>
           </button>
           <button class="lifeline-pill" id="lifeline-freeze" title="Add 30 seconds">
-            ⏳ +30s (<span id="count-freeze">3</span>)
+            <svg class="ui-icon" style="color:#0284c7;width:14px;height:14px;" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 15 15"/>
+            </svg>
+            <span>+30s (<span id="count-freeze">3</span>)</span>
           </button>
           <button class="lifeline-pill" id="lifeline-hint" title="Reveal hint">
-            💡 Hint (<span id="count-hint">3</span>)
+            <svg class="ui-icon" style="color:#ca8a04;width:14px;height:14px;" viewBox="0 0 24 24">
+              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/>
+            </svg>
+            <span>Hint (<span id="count-hint">3</span>)</span>
           </button>
         </div>
 
-        <!-- Status Mini-Summary Bar (Matches Screen 2 in reference image) -->
+        <!-- Status Mini-Summary Bar -->
         <div class="status-summary-grid">
           <div class="status-tile tile-current">
             <span class="status-val" id="stat-current-num">1</span>
@@ -173,23 +212,35 @@
           </div>
         </div>
 
-        <!-- Bottom CBT Navigation Matrix Controls (Matches Screen 2 bottom bar) -->
+        <!-- Bottom CBT Navigation Matrix Controls -->
         <div class="cbt-bottom-bar">
           <button class="cbt-nav-btn prev-btn" id="prev-btn" title="Previous Question">
-            ❮ Prev
+            <svg class="ui-icon" style="width:13px;height:13px;margin-right:4px;" viewBox="0 0 24 24">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Prev
           </button>
 
           <!-- Center Matrix Trigger Pill -->
           <button class="matrix-trigger-btn" id="matrix-trigger-btn" title="Open Question Navigation Matrix">
-            <span id="matrix-btn-text">1 / 200</span> <span>▲</span>
+            <span id="matrix-btn-text">1 / 200</span>
+            <svg class="ui-icon" style="width:14px;height:14px;" viewBox="0 0 24 24">
+              <polyline points="18 15 12 9 6 15"/>
+            </svg>
           </button>
 
           <button class="cbt-nav-btn next-btn" id="next-btn" title="Next Question">
-            Next ❯
+            Next
+            <svg class="ui-icon" style="width:13px;height:13px;margin-left:4px;" viewBox="0 0 24 24">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
           </button>
           
           <button class="cbt-nav-btn submit-btn" id="submit-exam-btn" style="display: none;" title="Submit Exam">
-            Submit 🏁
+            Submit
+            <svg class="ui-icon" style="width:13px;height:13px;margin-left:4px;" viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
           </button>
         </div>
 
@@ -201,13 +252,13 @@
       <section class="app-screen" id="screen-cram">
         <div class="screen-card">
           <div class="screen-header">
-            <h2>⚡ UNIOSUN High-Yield Cram Sheet</h2>
+            <h2>UNIOSUN High-Yield Cram Sheet</h2>
             <p>Fastest points to review right before entering the hall</p>
           </div>
 
           <!-- Section A: Dates & Heritage -->
           <div class="fact-section">
-            <h3 class="fact-title">🏛️ Identity, Dates &amp; Milestone</h3>
+            <h3 class="fact-title">Identity, Dates &amp; Milestone</h3>
             <ul class="fact-list">
               <li><strong>License Date:</strong> <span class="highlight">December 21, 2006</span> (30th State, 80th in Nigeria).</li>
               <li><strong>Law Enacted:</strong> Passed in 2006 under <strong>Prince Olagunsoye Oyinlola</strong>.</li>
@@ -221,7 +272,7 @@
 
           <!-- Section B: Principal Officers -->
           <div class="fact-section">
-            <h3 class="fact-title">👥 Current Principal Officers</h3>
+            <h3 class="fact-title">Current Principal Officers</h3>
             <ul class="fact-list">
               <li><strong>Chancellor (3rd):</strong> <span class="highlight">Dr. (Mrs.) Victoria Olufunmilayo Samson</span> (Mama BOVAS; succeeded Apostle Folorunso Alakija). Pioneer was late Oba Okunade Sijuwade.</li>
               <li><strong>Pro-Chancellor &amp; Council Chairman:</strong> <span class="highlight">Prof. Wale Oladipo</span> (Pioneer was Prof. Peter Okebukola).</li>
@@ -236,7 +287,7 @@
 
           <!-- Section C: Campuses -->
           <div class="fact-section">
-            <h3 class="fact-title">🗺️ Multi-Campus Distribution</h3>
+            <h3 class="fact-title">Multi-Campus Distribution</h3>
             <ul class="fact-list">
               <li><strong>Osogbo (Main, Oke-Baale):</strong> Science, Engineering &amp; Technology (SET), Health Sciences, and Computing &amp; IT (FCIT).</li>
               <li><strong>Okuku Campus:</strong> College of Management and Social Sciences.</li>
@@ -249,7 +300,7 @@
 
           <!-- Section D: Osun State Profile -->
           <div class="fact-section">
-            <h3 class="fact-title">🌴 Osun State Profile</h3>
+            <h3 class="fact-title">Osun State Profile</h3>
             <ul class="fact-list">
               <li><strong>Creation:</strong> <span class="highlight">August 27, 1991</span> by Gen. Ibrahim Babangida from old Oyo State.</li>
               <li><strong>LGAs:</strong> <span class="highlight">30 LGAs + 1 Area Office</span> (Ife East Area Office, Modakeke).</li>
@@ -264,7 +315,7 @@
 
           <!-- Section E: Pedagogy & Assessment -->
           <div class="fact-section">
-            <h3 class="fact-title">📚 Pedagogy, NUC &amp; Assessment</h3>
+            <h3 class="fact-title">Pedagogy, NUC &amp; Assessment</h3>
             <ul class="fact-list">
               <li><strong>Lecturer Triad:</strong> Teaching, Research, and Community Service.</li>
               <li><strong>CCMAS:</strong> Replaced BMAS. Split: <span class="highlight">70% NUC National Core / 30% Institutional Peculiarity</span>.</li>
@@ -279,7 +330,7 @@
 
           <!-- Section F: Current Affairs -->
           <div class="fact-section">
-            <h3 class="fact-title">🇳🇬 National Leadership Current Affairs</h3>
+            <h3 class="fact-title">National Leadership Current Affairs</h3>
             <ul class="fact-list">
               <li><strong>Education Minister:</strong> Dr. Maruf Tunji Alausa (State: Prof. Suwaiba Said Ahmad).</li>
               <li><strong>NUC Executive Secretary:</strong> Prof. Abdullahi Yusufu Ribadu.</li>
@@ -299,7 +350,7 @@
       <section class="app-screen" id="screen-vault">
         <div class="screen-card">
           <div class="screen-header">
-            <h2>🎯 Weak Areas Vault</h2>
+            <h2>Weak Areas Vault</h2>
             <p>Master the questions you missed or flagged during practice</p>
           </div>
 
@@ -307,7 +358,7 @@
             <div class="vault-count-large" id="vault-total-count">0</div>
             <div class="vault-hero-text">Questions currently in your revision vault</div>
             <button class="btn-primary" id="drill-vault-btn" style="margin-top: 12px; width: 100%;">
-              🚀 Drill My Weak Areas Now
+              Drill My Weak Areas Now
             </button>
           </div>
 
@@ -319,13 +370,16 @@
 
       <!-- ==================================================================
            SCREEN 4: PROFILE & CAREER PROGRESSION
-           Matches Screen 3 in reference image
            ================================================================== -->
       <section class="app-screen" id="screen-profile">
         <div class="screen-card">
           <!-- Profile Hero -->
           <div class="profile-hero">
-            <div class="profile-avatar">🎓</div>
+            <div class="profile-avatar">
+              <svg class="ui-icon" style="width:28px;height:28px;" viewBox="0 0 24 24">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>
+            </div>
             <div class="profile-info">
               <h2 class="profile-name">Candidate Lecturer</h2>
               <div class="profile-dept">Faculty of Computing &amp; Information Technology</div>
@@ -360,7 +414,7 @@
             </div>
             <div class="p-stat-box">
               <span class="p-stat-number" id="p-stat-streak">0</span>
-              <span class="p-stat-label">Best Streak 🔥</span>
+              <span class="p-stat-label">Best Streak</span>
             </div>
             <div class="p-stat-box">
               <span class="p-stat-number" id="p-stat-attempted">0</span>
@@ -371,7 +425,7 @@
           <!-- Quick Actions -->
           <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
             <button class="btn-secondary" id="reset-progress-btn" style="color: #ef4444; border-color: #fca5a5;">
-              ⚠️ Reset Session Stats
+              Reset Session Stats
             </button>
           </div>
         </div>
@@ -381,7 +435,6 @@
 
     <!-- ==================================================================
          BOTTOM SHEET: QUESTION NAVIGATION MATRIX
-         (Slides up from bottom when user taps center pill)
          ================================================================== -->
     <div class="bottom-sheet-overlay" id="matrix-sheet-overlay">
       <div class="bottom-sheet-container">
@@ -413,24 +466,48 @@
     </div>
 
     <!-- ==================================================================
-         BOTTOM NAVIGATION BAR (CONVENTIONAL MOBILE APP NAV)
-         Matches Screen 3 bottom navigation in reference image
+         BOTTOM NAVIGATION BAR (PROFESSIONAL SVG ICONS)
          ================================================================== -->
     <nav class="bottom-nav-bar">
       <button class="nav-tab active" data-target="screen-arena" id="nav-tab-arena">
-        <span class="nav-icon">📝</span>
+        <span class="nav-icon">
+          <svg class="nav-svg" viewBox="0 0 24 24">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+            <path d="m9 14 2 2 4-4"/>
+          </svg>
+        </span>
         <span class="nav-label">CBT Arena</span>
       </button>
+
       <button class="nav-tab" data-target="screen-cram" id="nav-tab-cram">
-        <span class="nav-icon">⚡</span>
+        <span class="nav-icon">
+          <svg class="nav-svg" viewBox="0 0 24 24">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+            <path d="M6 6h10M6 10h10"/>
+          </svg>
+        </span>
         <span class="nav-label">Cram Sheet</span>
       </button>
+
       <button class="nav-tab" data-target="screen-vault" id="nav-tab-vault">
-        <span class="nav-icon">🎯</span>
+        <span class="nav-icon">
+          <svg class="nav-svg" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+        </span>
         <span class="nav-label">Vault (<span id="bottom-vault-count">0</span>)</span>
       </button>
+
       <button class="nav-tab" data-target="screen-profile" id="nav-tab-profile">
-        <span class="nav-icon">👤</span>
+        <span class="nav-icon">
+          <svg class="nav-svg" viewBox="0 0 24 24">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
         <span class="nav-label">Profile</span>
       </button>
     </nav>
@@ -443,7 +520,7 @@
       <button class="modal-close-btn" id="close-results-btn">✕</button>
 
       <div class="result-badge-hero">
-        <div class="verdict-badge pass" id="modal-verdict-badge">REGULARISATION CONFIRMED! 🏆</div>
+        <div class="verdict-badge pass" id="modal-verdict-badge">REGULARISATION CONFIRMED!</div>
         <div class="result-score-large" id="modal-score-pct">85%</div>
         <div class="result-subtext" id="modal-score-detail">You scored 51 out of 60 questions correctly</div>
       </div>
@@ -455,10 +532,10 @@
 
       <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
         <button class="btn-primary" id="review-exam-answers-btn" style="flex: 1;">
-          📋 Review Answers
+          Review Answers
         </button>
         <button class="btn-secondary" id="restart-mock-btn" style="flex: 1;">
-          🔄 Retake Mock
+          Retake Mock
         </button>
       </div>
     </div>
@@ -473,7 +550,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker registered:', reg.scope))
+          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
           .catch(err => console.log('Service Worker registration failed:', err));
       });
     }

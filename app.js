@@ -7,15 +7,15 @@
 
   // Academic Hierarchy & Ranks
   const RANKS = [
-    { level: 1, title: 'Graduate Assistant', minXp: 0, maxXp: 250, icon: '🎓' },
-    { level: 2, title: 'Assistant Lecturer', minXp: 250, maxXp: 650, icon: '📖' },
-    { level: 3, title: 'Lecturer II', minXp: 650, maxXp: 1200, icon: '📝' },
-    { level: 4, title: 'Lecturer I', minXp: 1200, maxXp: 2000, icon: '🔬' },
-    { level: 5, title: 'Senior Lecturer', minXp: 2000, maxXp: 3000, icon: '📚' },
-    { level: 6, title: 'Reader (Assoc. Prof.)', minXp: 3000, maxXp: 4500, icon: '🏛️' },
-    { level: 7, title: 'Full Professor', minXp: 4500, maxXp: 6500, icon: '👑' },
-    { level: 8, title: 'College Provost', minXp: 6500, maxXp: 9000, icon: '⭐' },
-    { level: 9, title: 'Vice-Chancellor & Chair', minXp: 9000, maxXp: 99999, icon: '🌟' }
+    { level: 1, title: 'Graduate Assistant', minXp: 0, maxXp: 250 },
+    { level: 2, title: 'Assistant Lecturer', minXp: 250, maxXp: 650 },
+    { level: 3, title: 'Lecturer II', minXp: 650, maxXp: 1200 },
+    { level: 4, title: 'Lecturer I', minXp: 1200, maxXp: 2000 },
+    { level: 5, title: 'Senior Lecturer', minXp: 2000, maxXp: 3000 },
+    { level: 6, title: 'Reader (Assoc. Prof.)', minXp: 3000, maxXp: 4500 },
+    { level: 7, title: 'Full Professor', minXp: 4500, maxXp: 6500 },
+    { level: 8, title: 'College Provost', minXp: 6500, maxXp: 9000 },
+    { level: 9, title: 'Vice-Chancellor & Chair', minXp: 9000, maxXp: 99999 }
   ];
 
   // Global App State
@@ -242,7 +242,7 @@
     if (newRank.level > prevRank.level) {
       SoundFX.levelUp();
       Confetti.burst(80);
-      alert(`🎉 PROMOTION EARNED!\n\nYou have been promoted to ${newRank.title} (Level ${newRank.level})!`);
+      alert(`PROMOTION EARNED!\n\nYou have been promoted to ${newRank.title} (Level ${newRank.level})!`);
     }
   }
 
@@ -250,10 +250,8 @@
     const rank = getCurrentRank(state.xp);
     const rankTitle = document.getElementById('rank-title');
     const rankXp = document.getElementById('rank-xp-text');
-    const rankIcon = document.getElementById('rank-icon');
 
     if (rankTitle) rankTitle.textContent = rank.title;
-    if (rankIcon) rankIcon.textContent = rank.icon;
     if (rankXp) {
       rankXp.textContent = rank.level === 9 ? `${state.xp.toLocaleString()} XP (VC)` : `${state.xp} / ${rank.maxXp} XP`;
     }
@@ -567,15 +565,16 @@
 
     if (!expBox) return;
     expBox.style.display = 'block';
+    expBox.className = 'explanation-box ' + (isCorrect ? 'correct' : 'wrong');
 
     if (isCorrect) {
       header.className = 'exp-header correct';
       verdict.textContent = 'Correct!';
-      icon.textContent = '✅';
+      icon.innerHTML = `<svg class="ui-icon" style="color:#059669;width:18px;height:18px;vertical-align:text-bottom;margin-right:4px;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
     } else {
       header.className = 'exp-header wrong';
       verdict.textContent = 'Missed / Time Up!';
-      icon.textContent = '❌';
+      icon.innerHTML = `<svg class="ui-icon" style="color:#dc2626;width:18px;height:18px;vertical-align:text-bottom;margin-right:4px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
     }
     body.textContent = expText || 'Review the official UNIOSUN syllabus guidelines.';
   }
@@ -676,15 +675,15 @@
 
     if (pct >= 70) {
       vBadge.className = 'verdict-badge pass';
-      vBadge.textContent = 'DISTINCTION — REGULARISATION CONFIRMED! 🏆';
+      vBadge.textContent = 'DISTINCTION — REGULARISATION CONFIRMED!';
       Confetti.burst(100);
     } else if (pct >= 50) {
       vBadge.className = 'verdict-badge pass';
-      vBadge.textContent = 'PASSED — REGULARISATION SUCCESSFUL! 🎓';
+      vBadge.textContent = 'PASSED — REGULARISATION SUCCESSFUL!';
       Confetti.burst(50);
     } else {
       vBadge.className = 'verdict-badge fail';
-      vBadge.textContent = 'NEEDS DRILL — REVIEW MISSED TOPICS ⚠️';
+      vBadge.textContent = 'NEEDS DRILL — REVIEW MISSED TOPICS';
     }
 
     pContainer.innerHTML = '';
@@ -870,19 +869,51 @@
     state.theme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('uniosun_theme', theme);
-    const icon = document.getElementById('theme-icon');
-    if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
+    const themeWrapper = document.getElementById('theme-icon-wrapper');
+    if (themeWrapper) {
+      if (theme === 'light') {
+        themeWrapper.innerHTML = `
+          <svg class="ui-icon" viewBox="0 0 24 24">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>`;
+      } else {
+        themeWrapper.innerHTML = `
+          <svg class="ui-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>`;
+      }
+    }
   }
 
   function toggleTheme() {
     applyTheme(state.theme === 'light' ? 'dark' : 'light');
   }
 
+  function updateSoundIcon() {
+    const soundWrapper = document.getElementById('sound-icon-wrapper');
+    if (soundWrapper) {
+      if (state.soundEnabled) {
+        soundWrapper.innerHTML = `
+          <svg class="ui-icon" viewBox="0 0 24 24">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>`;
+      } else {
+        soundWrapper.innerHTML = `
+          <svg class="ui-icon" viewBox="0 0 24 24">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line x1="23" y1="9" x2="17" y2="15"/>
+            <line x1="17" y1="9" x2="23" y2="15"/>
+          </svg>`;
+      }
+    }
+  }
+
   function toggleSound() {
     state.soundEnabled = !state.soundEnabled;
     localStorage.setItem('uniosun_sound', state.soundEnabled ? 'true' : 'false');
-    const icon = document.getElementById('sound-icon');
-    if (icon) icon.textContent = state.soundEnabled ? '🔊' : '🔇';
+    updateSoundIcon();
   }
 
   // --------------------------------------------------------------------------
@@ -891,6 +922,7 @@
   function init() {
     Confetti.init();
     applyTheme(state.theme);
+    updateSoundIcon();
     updateRankUI();
     updateLifelineButtons();
     updateVaultUI();
