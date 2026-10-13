@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>UNIOSUN CBT Arena — Staff Regularisation 2026</title>
-  <meta name="description" content="Official 200-Question CBT Drill & Simulator for Osun State University Regularisation. Mobile-first PWA." />
+  <title>UNIOSUN CBT Arena — Mobile Examination App</title>
+  <meta name="description" content="Official 200-Question CBT Practice Arena & Mock Exam App for Osun State University Regularisation." />
   
-  <!-- PWA & Mobile App Native Meta Tags -->
+  <!-- PWA & Mobile Native Meta Tags -->
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#059669" />
+  <meta name="theme-color" content="#1e3a8a" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -22,314 +22,419 @@
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-  <!-- Canvas for Confetti celebrations -->
+  <!-- Canvas for Confetti celebration particles -->
   <canvas id="confetti-canvas"></canvas>
 
-  <!-- Top Navigation App Bar -->
-  <header class="navbar">
-    <div class="brand" id="brand-home" title="UNIOSUN CBT Home">
-      <div class="brand-crest">🏛️</div>
-      <div class="brand-text">
-        <h1>UNIOSUN CBT</h1>
-        <p>Living Spring of Knowledge • Regularisation</p>
-      </div>
-    </div>
-
-    <div class="nav-actions">
-      <!-- Academic Rank / XP Badge -->
-      <div class="level-badge-container" id="rank-badge" title="Your Academic Rank and XP Progression">
-        <div class="rank-icon-wrapper" id="rank-icon">🎓</div>
-        <div class="rank-info">
-          <span class="rank-title" id="rank-title">Graduate Assistant</span>
-          <span class="rank-xp" id="rank-xp-text">0 / 250 XP (Lvl 1)</span>
+  <!-- Mobile App Wrapper -->
+  <div class="mobile-app-shell">
+    
+    <!-- Top Mobile App Header (Conventional App Bar) -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="header-logo-badge">🏛️</div>
+        <div class="header-titles">
+          <h1 class="header-title">UNIOSUN CBT</h1>
+          <span class="header-subtitle">Regularisation 2026</span>
         </div>
       </div>
 
-      <!-- Quick Cram Sheet Button -->
-      <button class="icon-btn cram-btn" id="open-cram-btn" title="Open High-Yield Must-Know Cram Sheet">
-        ⚡ <span>Cram Sheet</span>
-      </button>
-
-      <!-- Review Missed / Vault Trigger -->
-      <button class="icon-btn" id="open-vault-btn" title="Review Flagged & Missed Questions">
-        🔖 <span id="vault-count-badge">Vault (0)</span>
-      </button>
-
-      <!-- Theme Switcher (☀️ Light / 🌙 Dark) -->
-      <button class="icon-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
-        <span id="theme-icon">🌙</span>
-      </button>
-
-      <!-- Sound FX Toggle -->
-      <button class="icon-btn" id="sound-toggle-btn" title="Toggle Sound Effects">
-        <span id="sound-icon">🔊</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- Main Content Wrapper -->
-  <main class="main-wrapper">
-    <!-- Mode Selection Tabs -->
-    <div class="mode-bar">
-      <button class="mode-tab active" data-mode="PRACTICE" id="tab-practice">
-        ⚡ <span>Mastery Drill</span>
-      </button>
-      <button class="mode-tab" data-mode="EXAM" id="tab-exam">
-        🏛️ <span>Mock CBT (60Q)</span>
-      </button>
-      <button class="mode-tab" data-mode="VAULT" id="tab-vault">
-        🎯 <span>Vault (<span id="tab-vault-count">0</span>)</span>
-      </button>
-    </div>
-
-    <!-- Pillars Filter Bar (Shown in Practice Mode) -->
-    <div class="filter-container" id="filter-container">
-      <button class="filter-chip active" data-cat="ALL">
-        🌐 All Pillars <span class="count">200</span>
-      </button>
-      <button class="filter-chip" data-cat="IT">
-        💻 IT &amp; Computing <span class="count">80</span>
-      </button>
-      <button class="filter-chip" data-cat="UNIOSUN">
-        🏛️ UNIOSUN &amp; Osun <span class="count">50</span>
-      </button>
-      <button class="filter-chip" data-cat="PEDAGOGY">
-        📚 Pedagogy &amp; Ethics <span class="count">40</span>
-      </button>
-      <button class="filter-chip" data-cat="APTITUDE">
-        🧠 Aptitude &amp; Logic <span class="count">30</span>
-      </button>
-    </div>
-
-    <!-- Quick Jump to Any Question -->
-    <div class="quick-jump-bar" id="quick-jump-bar">
-      <div class="jump-label">
-        <span>🎯 Jump directly to Question:</span>
-      </div>
-      <div class="jump-control">
-        <input type="number" id="jump-input" class="jump-input" min="1" max="200" placeholder="1-200" />
-        <button class="jump-btn" id="jump-btn">Go</button>
-      </div>
-    </div>
-
-    <!-- Central Arena Card -->
-    <div class="arena-card">
-      <!-- Heads Up Display (HUD) -->
-      <div class="hud">
-        <div class="hud-group">
-          <div class="hud-stat" id="score-display">
-            🎯 Score: <strong id="stat-score" style="color:var(--emerald-main);">0</strong> / <span id="stat-attempted">0</span> (<span id="stat-pct">0%</span>)
-          </div>
-          <div class="hud-stat streak-badge" id="streak-badge">
-            🔥 Streak: <strong id="stat-streak">0</strong>
-          </div>
+      <div class="header-right">
+        <!-- Live Timer Badge -->
+        <div class="timer-pill" id="timer-pill" title="Exam Time Remaining">
+          ⏱️ <span id="stat-timer">25</span>s
         </div>
 
-        <div class="hud-group">
-          <!-- Lifelines (Practice Mode) -->
-          <div class="lifelines-row" id="lifelines-row">
-            <button class="lifeline-btn" id="lifeline-5050" title="Eliminate 2 wrong answers [Press 'F']">
-              ⚡ 50:50 <span class="lifeline-count" id="count-5050">3</span>
-            </button>
-            <button class="lifeline-btn" id="lifeline-freeze" title="Freeze / Add 30s timer [Press 'T']">
-              ⏳ +30s <span class="lifeline-count" id="count-freeze">3</span>
-            </button>
-            <button class="lifeline-btn" id="lifeline-hint" title="Reveal memory clue [Press 'H']">
-              💡 Hint <span class="lifeline-count" id="count-hint">3</span>
-            </button>
-          </div>
+        <!-- Audio Mute Toggle -->
+        <button class="header-icon-btn" id="sound-toggle-btn" title="Toggle Audio Sound Effects">
+          <span id="sound-icon">🔊</span>
+        </button>
 
-          <!-- Timer Badge -->
-          <div class="hud-stat timer-badge" id="timer-badge">
-            ⏱️ <span id="stat-timer">25</span>s
-          </div>
-        </div>
-      </div>
-
-      <!-- Progress Track -->
-      <div class="progress-wrapper">
-        <div class="progress-header">
-          <span id="progress-text">Question 1 of 200</span>
-          <span id="session-progress-pct">0% Completed</span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" id="progress-bar"></div>
-        </div>
-      </div>
-
-      <!-- Question Metadata Header -->
-      <div class="q-meta">
-        <span class="category-tag" id="q-category">IT &amp; COMPUTING</span>
-        <span class="part-tag" id="q-part">Part A: Computer Networks</span>
-        <button class="bookmark-toggle-btn" id="bookmark-btn" title="Bookmark this question [Press 'B']">
-          ⭐ <span id="bookmark-text">Bookmark</span>
+        <!-- Dark/Light Theme Toggle -->
+        <button class="header-icon-btn" id="theme-toggle-btn" title="Toggle Theme">
+          <span id="theme-icon">🌙</span>
         </button>
       </div>
+    </header>
 
-      <!-- Question Text -->
-      <h2 class="question-prompt" id="q-prompt">
-        Loading question bank...
-      </h2>
+    <!-- Sub-header Mode Selector (Practice vs. Mock Exam) -->
+    <div class="mode-selector-bar">
+      <button class="mode-btn active" data-mode="PRACTICE" id="mode-btn-practice">
+        ⚡ <span>Practice Drill</span>
+      </button>
+      <button class="mode-btn" data-mode="EXAM" id="mode-btn-exam">
+        🏛️ <span>Mock CBT (60Q)</span>
+      </button>
+    </div>
 
-      <!-- Hint Panel (Initially Hidden) -->
-      <div class="hint-panel" id="hint-panel">
-        <strong>💡 Academic Hint:</strong> <span id="hint-text"></span>
-      </div>
-
-      <!-- Interactive Options Grid -->
-      <div class="options-grid" id="options-container">
-        <!-- Rendered dynamically -->
-      </div>
-
-      <!-- Immediate Feedback & Explanation Drawer -->
-      <div class="explanation-panel" id="explanation-panel">
-        <div class="explanation-header" id="explanation-header">
-          <span id="feedback-icon">✅</span> <span id="feedback-verdict">Correct!</span>
-        </div>
-        <div class="explanation-body" id="explanation-text">
-          <!-- Detailed justification here -->
-        </div>
-      </div>
-
-      <!-- Navigation & Action Controls -->
-      <div class="arena-controls">
-        <div class="action-btn-group">
-          <button class="btn-secondary" id="prev-btn" title="Previous Question">
-            ⬅️ Prev
-          </button>
-          <button class="btn-secondary" id="shuffle-btn" title="Shuffle Current Questions Deck">
-            🔀 Shuffle
-          </button>
-        </div>
-
-        <div class="action-btn-group">
-          <button class="btn-secondary" id="flag-btn" style="display:none;" title="Flag this question for CBT review">
-            🚩 Flag
-          </button>
-          <button class="btn-primary" id="next-btn" title="Next Question [Space / Enter]">
-            Next Question ➔
-          </button>
-          <button class="btn-primary" id="submit-exam-btn" style="display:none;background:var(--gold-main);color:#ffffff;" title="Finish and Submit Exam">
-            🏁 Submit Exam
-          </button>
-        </div>
-      </div>
-
-      <!-- Question Matrix (CBT Mock Exam Mode Only) -->
-      <div class="cbt-matrix-panel" id="cbt-matrix-panel" style="display: none;">
-        <div class="matrix-header">
-          <span class="matrix-title">CBT Navigation Matrix</span>
-          <div class="matrix-legend">
-            <div class="legend-item"><div class="legend-dot unanswered"></div> Unanswered</div>
-            <div class="legend-item"><div class="legend-dot answered"></div> Answered</div>
-            <div class="legend-item"><div class="legend-dot flagged"></div> Flagged</div>
-            <div class="legend-item"><div class="legend-dot current"></div> Current</div>
+    <!-- Main Screens Container -->
+    <div class="screens-container">
+      
+      <!-- ==================================================================
+           SCREEN 1: CBT ARENA (EXAM & DRILL SCREEN)
+           Matches conventional mobile CBT layout (Screen 2 in reference image)
+           ================================================================== -->
+      <section class="app-screen active" id="screen-arena">
+        
+        <!-- Category / Pillar Dropdown Selector -->
+        <div class="category-dropdown-wrapper" id="category-selector-wrapper">
+          <label for="pillar-select" class="dropdown-label">Pillar Domain:</label>
+          <div class="select-container">
+            <select id="pillar-select" class="pillar-select">
+              <option value="ALL">🌐 All Domains (200 Questions)</option>
+              <option value="IT">💻 1. Core IT &amp; Computing (80Q)</option>
+              <option value="UNIOSUN">🏛️ 2. UNIOSUN &amp; Osun Facts (50Q)</option>
+              <option value="PEDAGOGY">📚 3. Pedagogy &amp; Research Ethics (40Q)</option>
+              <option value="APTITUDE">🧠 4. Current Affairs &amp; Logic (30Q)</option>
+            </select>
           </div>
         </div>
-        <div class="matrix-grid" id="matrix-grid">
-          <!-- Dynamically generated buttons for Q1 to Q60 -->
+
+        <!-- Question Box Card -->
+        <div class="question-container-card">
+          <!-- Question Meta Header -->
+          <div class="q-card-header">
+            <div class="q-number-tag">
+              <span id="q-number-label">Question 1</span>
+              <span class="q-sec-tag" id="q-sec-tag">IT &amp; Computing</span>
+            </div>
+            <div class="q-card-actions">
+              <button class="q-action-btn" id="flag-btn" title="Flag this question for review">
+                🚩 <span id="flag-btn-text">Flag</span>
+              </button>
+              <button class="q-action-btn" id="hint-btn" title="View Hint">
+                💡 Hint
+              </button>
+            </div>
+          </div>
+
+          <!-- Question Sub-part -->
+          <div class="q-subpart-text" id="q-subpart-text">Part A: Computer Networks &amp; Data Communications</div>
+
+          <!-- Question Prompt Text -->
+          <div class="question-text" id="q-prompt">
+            Loading question bank...
+          </div>
+
+          <!-- Inline Hint Panel (Revealed when hint lifeline used) -->
+          <div class="hint-box" id="hint-panel" style="display: none;">
+            <strong>💡 Memory Clue:</strong> <span id="hint-text"></span>
+          </div>
+
+          <!-- Options Section Instruction -->
+          <div class="options-prompt-label">Select the option you believe is correct:</div>
+
+          <!-- Radio-Style Options Grid -->
+          <div class="options-list" id="options-container">
+            <!-- Dynamically generated option cards -->
+          </div>
+
+          <!-- Practice Mode Immediate Explanation Drawer -->
+          <div class="explanation-box" id="explanation-panel" style="display: none;">
+            <div class="exp-header" id="exp-header">
+              <span id="feedback-icon">✅</span> <span id="feedback-verdict">Correct!</span>
+            </div>
+            <div class="exp-body" id="explanation-text">
+              <!-- Explanation details -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Practice Lifelines Bar -->
+        <div class="lifelines-bar" id="lifelines-bar">
+          <span class="lifelines-label">Lifelines:</span>
+          <button class="lifeline-pill" id="lifeline-5050" title="Eliminate 2 wrong answers">
+            ⚡ 50:50 (<span id="count-5050">3</span>)
+          </button>
+          <button class="lifeline-pill" id="lifeline-freeze" title="Add 30 seconds">
+            ⏳ +30s (<span id="count-freeze">3</span>)
+          </button>
+          <button class="lifeline-pill" id="lifeline-hint" title="Reveal hint">
+            💡 Hint (<span id="count-hint">3</span>)
+          </button>
+        </div>
+
+        <!-- Status Mini-Summary Bar (Matches Screen 2 in reference image) -->
+        <div class="status-summary-grid">
+          <div class="status-tile tile-current">
+            <span class="status-val" id="stat-current-num">1</span>
+            <span class="status-lbl">Current</span>
+          </div>
+          <div class="status-tile tile-answered">
+            <span class="status-val" id="stat-answered-count">0</span>
+            <span class="status-lbl">Answered</span>
+          </div>
+          <div class="status-tile tile-flagged">
+            <span class="status-val" id="stat-flagged-count">0</span>
+            <span class="status-lbl">Flagged</span>
+          </div>
+          <div class="status-tile tile-unanswered">
+            <span class="status-val" id="stat-unanswered-count">200</span>
+            <span class="status-lbl">Unanswered</span>
+          </div>
+        </div>
+
+        <!-- Bottom CBT Navigation Matrix Controls (Matches Screen 2 bottom bar) -->
+        <div class="cbt-bottom-bar">
+          <button class="cbt-nav-btn prev-btn" id="prev-btn" title="Previous Question">
+            ❮ Prev
+          </button>
+
+          <!-- Center Matrix Trigger Pill -->
+          <button class="matrix-trigger-btn" id="matrix-trigger-btn" title="Open Question Navigation Matrix">
+            <span id="matrix-btn-text">1 / 200</span> <span>▲</span>
+          </button>
+
+          <button class="cbt-nav-btn next-btn" id="next-btn" title="Next Question">
+            Next ❯
+          </button>
+          
+          <button class="cbt-nav-btn submit-btn" id="submit-exam-btn" style="display: none;" title="Submit Exam">
+            Submit 🏁
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ==================================================================
+           SCREEN 2: CRAM SHEET (POCKET FACTS FOR EXAM DAY)
+           ================================================================== -->
+      <section class="app-screen" id="screen-cram">
+        <div class="screen-card">
+          <div class="screen-header">
+            <h2>⚡ UNIOSUN High-Yield Cram Sheet</h2>
+            <p>Fastest points to review right before entering the hall</p>
+          </div>
+
+          <!-- Section A: Dates & Heritage -->
+          <div class="fact-section">
+            <h3 class="fact-title">🏛️ Identity, Dates &amp; Milestone</h3>
+            <ul class="fact-list">
+              <li><strong>License Date:</strong> <span class="highlight">December 21, 2006</span> (30th State, 80th in Nigeria).</li>
+              <li><strong>Law Enacted:</strong> Passed in 2006 under <strong>Prince Olagunsoye Oyinlola</strong>.</li>
+              <li><strong>Students Commenced:</strong> <span class="highlight">September 2007</span>.</li>
+              <li><strong>Foundation Day:</strong> <span class="highlight">September 21</span> annually.</li>
+              <li><strong>20th Anniversary Milestone:</strong> <span class="highlight">December 21, 2026</span>.</li>
+              <li><strong>Official Motto:</strong> <span class="highlight">"Living Spring of Knowledge and Culture"</span> (Do NOT confuse with OAU's "For Learning and Culture").</li>
+              <li><strong>Statutory Visitor:</strong> Executive Governor <strong>Sen. Ademola Jackson Nurudeen Adeleke</strong>.</li>
+            </ul>
+          </div>
+
+          <!-- Section B: Principal Officers -->
+          <div class="fact-section">
+            <h3 class="fact-title">👥 Current Principal Officers</h3>
+            <ul class="fact-list">
+              <li><strong>Chancellor (3rd):</strong> <span class="highlight">Dr. (Mrs.) Victoria Olufunmilayo Samson</span> (Mama BOVAS; succeeded Apostle Folorunso Alakija). Pioneer was late Oba Okunade Sijuwade.</li>
+              <li><strong>Pro-Chancellor &amp; Council Chairman:</strong> <span class="highlight">Prof. Wale Oladipo</span> (Pioneer was Prof. Peter Okebukola).</li>
+              <li><strong>Vice-Chancellor (4th Substantive):</strong> <span class="highlight">Prof. Odunayo Clement Adebooye</span> (Specialist: Agronomy / Plant Physiology).</li>
+              <li><strong>DVC (Academic - ARIP):</strong> <span class="highlight">Prof. Adetunji Lawrence Kehinde</span>.</li>
+              <li><strong>DVC (Administration &amp; Development):</strong> <span class="highlight">Prof. Morufu O. Olayiwola</span>.</li>
+              <li><strong>Registrar (3rd Substantive):</strong> <span class="highlight">Mrs. Atinuke Abosede Oguntunde</span>.</li>
+              <li><strong>Bursar (3rd Substantive):</strong> <span class="highlight">Mr. Muideen Akintayo Lasisi</span>.</li>
+              <li><strong>Librarian (3rd Substantive):</strong> <span class="highlight">Dr. Olugbenga Wale Adewuyi</span>.</li>
+            </ul>
+          </div>
+
+          <!-- Section C: Campuses -->
+          <div class="fact-section">
+            <h3 class="fact-title">🗺️ Multi-Campus Distribution</h3>
+            <ul class="fact-list">
+              <li><strong>Osogbo (Main, Oke-Baale):</strong> Science, Engineering &amp; Technology (SET), Health Sciences, and Computing &amp; IT (FCIT).</li>
+              <li><strong>Okuku Campus:</strong> College of Management and Social Sciences.</li>
+              <li><strong>Ikire Campus:</strong> College of Humanities and Culture.</li>
+              <li><strong>Ejigbo Campus:</strong> College of Agriculture.</li>
+              <li><strong>Ifetedo Campus:</strong> College of Law.</li>
+              <li><strong>Ipetu-Ijesa Campus:</strong> College of Education.</li>
+            </ul>
+          </div>
+
+          <!-- Section D: Osun State Profile -->
+          <div class="fact-section">
+            <h3 class="fact-title">🌴 Osun State Profile</h3>
+            <ul class="fact-list">
+              <li><strong>Creation:</strong> <span class="highlight">August 27, 1991</span> by Gen. Ibrahim Babangida from old Oyo State.</li>
+              <li><strong>LGAs:</strong> <span class="highlight">30 LGAs + 1 Area Office</span> (Ife East Area Office, Modakeke).</li>
+              <li><strong>Districts/Seats:</strong> 3 Senatorial Districts, 9 Federal Constituencies, 26 House of Assembly seats.</li>
+              <li><strong>First Civilian Governor:</strong> Sen. Isiaka Adetunji Adeleke (1992-1993).</li>
+              <li><strong>First 4th Republic Governor:</strong> Chief Adebisi Akande (1999-2003).</li>
+              <li><strong>Speaker (8th Assembly):</strong> Rt. Hon. Adewale Olumide Egbedun.</li>
+              <li><strong>Chief Judge:</strong> Hon. Justice Oyebola Adepele Ojo.</li>
+              <li><strong>Landmarks:</strong> Osun-Osogbo Grove (UNESCO 2005); Olumirin Waterfalls (Erin-Ijesha, Oriade LGA).</li>
+            </ul>
+          </div>
+
+          <!-- Section E: Pedagogy & Assessment -->
+          <div class="fact-section">
+            <h3 class="fact-title">📚 Pedagogy, NUC &amp; Assessment</h3>
+            <ul class="fact-list">
+              <li><strong>Lecturer Triad:</strong> Teaching, Research, and Community Service.</li>
+              <li><strong>CCMAS:</strong> Replaced BMAS. Split: <span class="highlight">70% NUC National Core / 30% Institutional Peculiarity</span>.</li>
+              <li><strong>Attendance Rule:</strong> Minimum <span class="highlight">75% attendance</span> required for exam eligibility.</li>
+              <li><strong>Academic Hierarchy:</strong> GA ➔ AL ➔ LII ➔ LI ➔ Senior Lecturer ➔ Reader ➔ Professor.</li>
+              <li><strong>Bloom's Taxonomy:</strong> Remembering ➔ Understanding ➔ Applying ➔ Analyzing ➔ Evaluating ➔ Creating.</li>
+              <li><strong>Domains:</strong> Cognitive (Head), Affective (Heart/Character), Psychomotor (Hands/Skills).</li>
+              <li><strong>Grading Scale:</strong> A (70-100%, 5.0), B (60-69%, 4.0), C (50-59%, 3.0), D (45-49%, 2.0), E (40-44%, 1.0), F (0-39%, 0.0). 2:2 is 2.40 to 3.49 CGPA.</li>
+              <li><strong>Research Ethics:</strong> Salami slicing = fragmented publishing; Fabrication = inventing data; Falsification = altering data; Gift authorship = co-author without intellectual contribution.</li>
+            </ul>
+          </div>
+
+          <!-- Section F: Current Affairs -->
+          <div class="fact-section">
+            <h3 class="fact-title">🇳🇬 National Leadership Current Affairs</h3>
+            <ul class="fact-list">
+              <li><strong>Education Minister:</strong> Dr. Maruf Tunji Alausa (State: Prof. Suwaiba Said Ahmad).</li>
+              <li><strong>NUC Executive Secretary:</strong> Prof. Abdullahi Yusufu Ribadu.</li>
+              <li><strong>JAMB / TETFund / NELFUND:</strong> Prof. Ishaq Oloyede / Arc. Sonny Echono / Mr. Akintunde Sawyerr.</li>
+              <li><strong>Digital Economy Minister:</strong> Dr. Bosun Tijani; NITDA DG: Kashifu Inuwa Abdullahi.</li>
+              <li><strong>Chief Justice (CJN):</strong> Hon. Justice Kudirat Motonmori Olatokunbo Kekere-Ekun.</li>
+              <li><strong>National Assembly:</strong> Senate President Godswill Akpabio; Speaker Tajudeen Abbas.</li>
+              <li><strong>National Anthem:</strong> Lyrics by Lillian Jean Williams; Music by Frances Benda.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           SCREEN 3: WEAK AREAS VAULT (MISSED QUESTIONS)
+           ================================================================== -->
+      <section class="app-screen" id="screen-vault">
+        <div class="screen-card">
+          <div class="screen-header">
+            <h2>🎯 Weak Areas Vault</h2>
+            <p>Master the questions you missed or flagged during practice</p>
+          </div>
+
+          <div class="vault-hero-card">
+            <div class="vault-count-large" id="vault-total-count">0</div>
+            <div class="vault-hero-text">Questions currently in your revision vault</div>
+            <button class="btn-primary" id="drill-vault-btn" style="margin-top: 12px; width: 100%;">
+              🚀 Drill My Weak Areas Now
+            </button>
+          </div>
+
+          <div class="vault-list-container" id="vault-items-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           SCREEN 4: PROFILE & CAREER PROGRESSION
+           Matches Screen 3 in reference image
+           ================================================================== -->
+      <section class="app-screen" id="screen-profile">
+        <div class="screen-card">
+          <!-- Profile Hero -->
+          <div class="profile-hero">
+            <div class="profile-avatar">🎓</div>
+            <div class="profile-info">
+              <h2 class="profile-name">Candidate Lecturer</h2>
+              <div class="profile-dept">Faculty of Computing &amp; Information Technology</div>
+              <div class="profile-badge-pill" id="profile-rank-pill">Graduate Assistant (Level 1)</div>
+            </div>
+          </div>
+
+          <!-- XP Progression Card -->
+          <div class="profile-card">
+            <div class="card-row">
+              <span class="card-label">Career XP Earned:</span>
+              <strong class="card-val" id="profile-xp-val">0 XP</strong>
+            </div>
+            <div class="card-row" style="margin-top: 6px;">
+              <span class="card-label">Next Promotion:</span>
+              <span class="card-val" id="profile-next-rank-val">250 XP</span>
+            </div>
+            <div class="profile-progress-bar">
+              <div class="profile-progress-fill" id="profile-progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- Performance Statistics Grid -->
+          <div class="profile-stats-grid">
+            <div class="p-stat-box">
+              <span class="p-stat-number" id="p-stat-score">0</span>
+              <span class="p-stat-label">Correct Answers</span>
+            </div>
+            <div class="p-stat-box">
+              <span class="p-stat-number" id="p-stat-pct">0%</span>
+              <span class="p-stat-label">Accuracy Rate</span>
+            </div>
+            <div class="p-stat-box">
+              <span class="p-stat-number" id="p-stat-streak">0</span>
+              <span class="p-stat-label">Best Streak 🔥</span>
+            </div>
+            <div class="p-stat-box">
+              <span class="p-stat-number" id="p-stat-attempted">0</span>
+              <span class="p-stat-label">Total Attempted</span>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn-secondary" id="reset-progress-btn" style="color: #ef4444; border-color: #fca5a5;">
+              ⚠️ Reset Session Stats
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ==================================================================
+         BOTTOM SHEET: QUESTION NAVIGATION MATRIX
+         (Slides up from bottom when user taps center pill)
+         ================================================================== -->
+    <div class="bottom-sheet-overlay" id="matrix-sheet-overlay">
+      <div class="bottom-sheet-container">
+        <div class="bottom-sheet-handle"></div>
+        <div class="sheet-header">
+          <div class="sheet-title">Question Navigation Matrix</div>
+          <button class="sheet-close-btn" id="close-sheet-btn">✕</button>
+        </div>
+
+        <div class="sheet-legend">
+          <div class="s-legend-item"><div class="s-legend-dot dot-answered"></div> Answered</div>
+          <div class="s-legend-item"><div class="s-legend-dot dot-flagged"></div> Flagged</div>
+          <div class="s-legend-item"><div class="s-legend-dot dot-unanswered"></div> Unanswered</div>
+          <div class="s-legend-item"><div class="s-legend-dot dot-current"></div> Current</div>
+        </div>
+
+        <!-- Jump to question input inside sheet -->
+        <div class="sheet-jump-row">
+          <span>Jump to number:</span>
+          <input type="number" id="sheet-jump-input" class="sheet-jump-input" min="1" max="200" placeholder="1-200" />
+          <button class="btn-primary" id="sheet-jump-btn" style="padding: 6px 14px; font-size: 0.8rem;">Go</button>
+        </div>
+
+        <!-- Matrix Grid -->
+        <div class="sheet-grid" id="sheet-matrix-grid">
+          <!-- Dynamically populated buttons -->
         </div>
       </div>
     </div>
-  </main>
 
-  <!-- High-Yield Cram Sheet Slide-Over Drawer -->
-  <div class="drawer-overlay" id="cram-drawer">
-    <div class="drawer-content">
-      <div class="drawer-header">
-        <div class="drawer-title">⚡ UNIOSUN High-Yield Cram Sheet</div>
-        <button class="modal-close-btn" id="close-cram-btn">✕</button>
-      </div>
+    <!-- ==================================================================
+         BOTTOM NAVIGATION BAR (CONVENTIONAL MOBILE APP NAV)
+         Matches Screen 3 bottom navigation in reference image
+         ================================================================== -->
+    <nav class="bottom-nav-bar">
+      <button class="nav-tab active" data-target="screen-arena" id="nav-tab-arena">
+        <span class="nav-icon">📝</span>
+        <span class="nav-label">CBT Arena</span>
+      </button>
+      <button class="nav-tab" data-target="screen-cram" id="nav-tab-cram">
+        <span class="nav-icon">⚡</span>
+        <span class="nav-label">Cram Sheet</span>
+      </button>
+      <button class="nav-tab" data-target="screen-vault" id="nav-tab-vault">
+        <span class="nav-icon">🎯</span>
+        <span class="nav-label">Vault (<span id="bottom-vault-count">0</span>)</span>
+      </button>
+      <button class="nav-tab" data-target="screen-profile" id="nav-tab-profile">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+      </button>
+    </nav>
 
-      <!-- Pillar 1: UNIOSUN Fast Facts -->
-      <div class="cram-section">
-        <h3>🏛️ UNIOSUN Identity &amp; Key Dates</h3>
-        <ul class="cram-list">
-          <li><strong>Licensing Date:</strong> <span class="cram-highlight">December 21, 2006</span> (30th State University, 80th University in Nigeria).</li>
-          <li><strong>Law Enacted:</strong> Passed in 2006 under <strong>Prince Olagunsoye Oyinlola</strong>.</li>
-          <li><strong>Academic Inception:</strong> Students commenced in <span class="cram-highlight">September 2007</span>.</li>
-          <li><strong>Foundation Day:</strong> <span class="cram-highlight">September 21</span> annually.</li>
-          <li><strong>20th Anniversary Milestone:</strong> <span class="cram-highlight">December 21, 2026</span>.</li>
-          <li><strong>Official Motto:</strong> <span class="cram-highlight">"Living Spring of Knowledge and Culture"</span> (Do NOT confuse with OAU's "For Learning and Culture").</li>
-          <li><strong>Statutory Visitor:</strong> Executive Governor of Osun State, <strong>Sen. Ademola Jackson Nurudeen Adeleke</strong>.</li>
-        </ul>
-      </div>
-
-      <!-- Pillar 2: Principal Officers -->
-      <div class="cram-section">
-        <h3>👥 Current Principal Officers</h3>
-        <ul class="cram-list">
-          <li><strong>Chancellor (3rd):</strong> <span class="cram-highlight">Dr. (Mrs.) Victoria Olufunmilayo Samson</span> (Mama BOVAS; succeeded Apostle Folorunso Alakija). Pioneer was late Oba Okunade Sijuwade.</li>
-          <li><strong>Pro-Chancellor &amp; Council Chairman:</strong> <span class="cram-highlight">Prof. Wale Oladipo</span> (Pioneer was Prof. Peter Okebukola).</li>
-          <li><strong>Vice-Chancellor (4th Substantive):</strong> <span class="cram-highlight">Prof. Odunayo Clement Adebooye</span> (Specialist: Agronomy / Plant Physiology).</li>
-          <li><strong>DVC (Academic, Research, Innovation &amp; Partnerships - ARIP):</strong> <span class="cram-highlight">Prof. Adetunji Lawrence Kehinde</span>.</li>
-          <li><strong>DVC (Administration &amp; Development):</strong> <span class="cram-highlight">Prof. Morufu O. Olayiwola</span>.</li>
-          <li><strong>Registrar (3rd Substantive):</strong> <span class="cram-highlight">Mrs. Atinuke Abosede Oguntunde</span>.</li>
-          <li><strong>Bursar (3rd Substantive):</strong> <span class="cram-highlight">Mr. Muideen Akintayo Lasisi</span>.</li>
-          <li><strong>Librarian (3rd Substantive):</strong> <span class="cram-highlight">Dr. Olugbenga Wale Adewuyi</span>.</li>
-        </ul>
-      </div>
-
-      <!-- Pillar 3: Multi-Campus Distribution -->
-      <div class="cram-section">
-        <h3>🗺️ Multi-Campus Distribution (7 Colleges, 6 Campuses)</h3>
-        <ul class="cram-list">
-          <li><strong>Osogbo (Main Campus, Oke-Baale):</strong> College of Science, Engineering &amp; Technology (SET), College of Health Sciences, and Faculty of Computing &amp; IT (FCIT).</li>
-          <li><strong>Okuku Campus:</strong> College of Management and Social Sciences.</li>
-          <li><strong>Ikire Campus:</strong> College of Humanities and Culture.</li>
-          <li><strong>Ejigbo Campus:</strong> College of Agriculture.</li>
-          <li><strong>Ifetedo Campus:</strong> College of Law.</li>
-          <li><strong>Ipetu-Ijesa Campus:</strong> College of Education.</li>
-        </ul>
-      </div>
-
-      <!-- Pillar 4: Osun State Facts -->
-      <div class="cram-section">
-        <h3>🌴 Osun State Profile</h3>
-        <ul class="cram-list">
-          <li><strong>Creation:</strong> Created <span class="cram-highlight">August 27, 1991</span> by Gen. Ibrahim Babangida from old Oyo State.</li>
-          <li><strong>Local Governments:</strong> <span class="cram-highlight">30 LGAs + 1 Area Office</span> (Ife East Area Office, Modakeke).</li>
-          <li><strong>Governance:</strong> 3 Senatorial Districts, 9 Federal Constituencies, 26 State Assembly seats.</li>
-          <li><strong>First Civilian Governor:</strong> Sen. Isiaka Adetunji Adeleke (1992-1993).</li>
-          <li><strong>First 4th Republic Governor:</strong> Chief Adebisi Akande (1999-2003).</li>
-          <li><strong>Speaker (8th Assembly):</strong> Rt. Hon. Adewale Olumide Egbedun.</li>
-          <li><strong>Chief Judge:</strong> Hon. Justice Oyebola Adepele Ojo.</li>
-          <li><strong>SSG / CoS / HoS:</strong> SSG: Hon. Teslim Igbalaye; CoS: Alhaji Kazeem Akinleye; HoS: Elder Samuel Ayanleye Aina.</li>
-          <li><strong>Landmarks:</strong> Osun-Osogbo Sacred Grove (UNESCO World Heritage, 2005); Olumirin Waterfalls (Erin-Ijesha, Oriade LGA).</li>
-        </ul>
-      </div>
-
-      <!-- Pillar 5: Pedagogy & Assessment -->
-      <div class="cram-section">
-        <h3>📚 Pedagogy, NUC &amp; Assessment</h3>
-        <ul class="cram-list">
-          <li><strong>Lecturer Triad:</strong> Teaching, Research, and Community Service.</li>
-          <li><strong>CCMAS:</strong> Core Curriculum &amp; Minimum Academic Standards (replaced BMAS). Split is <span class="cram-highlight">70% NUC National Core / 30% University Local Peculiarity</span>.</li>
-          <li><strong>Attendance Rule:</strong> Minimum <span class="cram-highlight">75% attendance</span> required to sit for semester examinations.</li>
-          <li><strong>1 Credit Unit:</strong> 1 lecture hour per week for 15 weeks (15 contact hours); or 3 laboratory hours per week.</li>
-          <li><strong>Academic Hierarchy:</strong> GA ➔ AL ➔ LII ➔ LI ➔ Senior Lecturer ➔ Reader (Assoc. Prof.) ➔ Professor.</li>
-          <li><strong>Bloom's Taxonomy:</strong> Remembering ➔ Understanding ➔ Applying ➔ Analyzing ➔ Evaluating ➔ Creating.</li>
-          <li><strong>Domains:</strong> Cognitive (Knowledge/Head), Affective (Values/Heart/Character), Psychomotor (Skills/Hand).</li>
-          <li><strong>Grading Scale:</strong> A (70-100%, 5.0), B (60-69%, 4.0), C (50-59%, 3.0), D (45-49%, 2.0), E (40-44%, 1.0), F (0-39%, 0.0). 2:2 Degree = 2.40 to 3.49 CGPA.</li>
-          <li><strong>Ethics:</strong> Salami Slicing = splitting one study into minimal papers; Fabrication = inventing fake data; Falsification = altering real data; Gift Authorship = co-author without intellectual contribution.</li>
-        </ul>
-      </div>
-
-      <!-- Pillar 6: Key National Figures -->
-      <div class="cram-section">
-        <h3>🇳🇬 National Leadership Current Affairs</h3>
-        <ul class="cram-list">
-          <li><strong>Minister of Education:</strong> Dr. Maruf Tunji Alausa (State: Prof. Suwaiba Said Ahmad).</li>
-          <li><strong>NUC Executive Secretary:</strong> Prof. Abdullahi Yusufu Ribadu.</li>
-          <li><strong>JAMB / TETFund / NELFUND:</strong> JAMB: Prof. Ishaq Oloyede; TETFund: Arc. Sonny Echono; NELFUND: Mr. Akintunde Sawyerr.</li>
-          <li><strong>Minister of Digital Economy / NITDA:</strong> Dr. Bosun Tijani / Kashifu Inuwa Abdullahi.</li>
-          <li><strong>Chief Justice of Nigeria (CJN):</strong> Hon. Justice Kudirat Motonmori Olatokunbo Kekere-Ekun.</li>
-          <li><strong>National Assembly:</strong> Senate President Godswill Akpabio; Speaker Tajudeen Abbas.</li>
-          <li><strong>CBN Governor:</strong> Olayemi Cardoso.</li>
-          <li><strong>National Anthem:</strong> Lyrics by Lillian Jean Williams; Music by Frances Benda.</li>
-        </ul>
-      </div>
-    </div>
   </div>
 
   <!-- CBT Exam Results Modal -->
@@ -348,22 +453,16 @@
         <!-- Dynamically injected -->
       </div>
 
-      <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
-        <button class="btn-primary" id="review-exam-answers-btn">
-          📋 Review All Answers
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
+        <button class="btn-primary" id="review-exam-answers-btn" style="flex: 1;">
+          📋 Review Answers
         </button>
-        <button class="btn-secondary" id="restart-mock-btn">
-          🔄 Retake New Mock Exam
+        <button class="btn-secondary" id="restart-mock-btn" style="flex: 1;">
+          🔄 Retake Mock
         </button>
       </div>
     </div>
   </div>
-
-  <!-- Footer -->
-  <footer class="app-footer">
-    <p>Osun State University Staff Regularisation Assessment Preparation Arena</p>
-    <p style="margin-top:4px;">Built with high-yield mastery algorithms • <strong>Best of luck in your regularisation today! Go smash it!</strong></p>
-  </footer>
 
   <!-- Scripts -->
   <script src="questions.js"></script>
@@ -374,7 +473,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+          .then(reg => console.log('Service Worker registered:', reg.scope))
           .catch(err => console.log('Service Worker registration failed:', err));
       });
     }

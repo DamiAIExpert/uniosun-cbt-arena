@@ -1,14 +1,11 @@
 // ==========================================================================
-// UNIOSUN Regularisation CBT Arena - Interactive Gamified Controller
-// Complete Game Engine, Sound Synthesizer, Mock CBT Simulator & Vault
+// UNIOSUN Regularisation CBT Arena — Conventional Mobile App Engine
 // ==========================================================================
 
 (function () {
   'use strict';
 
-  // --------------------------------------------------------------------------
   // Academic Hierarchy & Ranks
-  // --------------------------------------------------------------------------
   const RANKS = [
     { level: 1, title: 'Graduate Assistant', minXp: 0, maxXp: 250, icon: '🎓' },
     { level: 2, title: 'Assistant Lecturer', minXp: 250, maxXp: 650, icon: '📖' },
@@ -21,59 +18,55 @@
     { level: 9, title: 'Vice-Chancellor & Chair', minXp: 9000, maxXp: 99999, icon: '🌟' }
   ];
 
-  // --------------------------------------------------------------------------
-  // State
-  // --------------------------------------------------------------------------
+  // Global App State
   const state = {
+    currentScreen: 'screen-arena', // 'screen-arena' | 'screen-cram' | 'screen-vault' | 'screen-profile'
     mode: 'PRACTICE', // 'PRACTICE' | 'EXAM' | 'VAULT'
     filterCat: 'ALL',
     deck: [],
     currentIdx: 0,
     answeredInCurrent: false,
-    selectedOptionIdx: -1,
-    
-    // Stats for Practice
+
+    // Stats
     score: 0,
     attempted: 0,
     streak: 0,
     maxStreak: 0,
-    
-    // Theme (defaults to clean light theme)
+
+    // Theme & Audio
     theme: localStorage.getItem('uniosun_theme') || 'light',
-    
-    // XP & Level
-    xp: parseInt(localStorage.getItem('uniosun_xp') || '0', 10),
-    
-    // Sound
     soundEnabled: localStorage.getItem('uniosun_sound') !== 'false',
-    
-    // Vault / Missed Questions
+
+    // RPG XP
+    xp: parseInt(localStorage.getItem('uniosun_xp') || '0', 10),
+
+    // Missed & Flagged
     vault: new Set(JSON.parse(localStorage.getItem('uniosun_vault') || '[]')),
     missed: new Set(JSON.parse(localStorage.getItem('uniosun_missed') || '[]')),
-    
+    flagged: new Set(),
+
     // Lifelines (Practice)
     lifelines: {
       fifties: 3,
       freezes: 3,
       hints: 3
     },
-    
+
     // Timers
     timerInterval: null,
     timeLeft: 25,
     questionStartTime: 0,
-    
+
     // Exam Mode State
     exam: {
       active: false,
       questions: [],
       userAnswers: [], // array of selected option indices (-1 for none)
       flagged: new Set(),
-      durationSeconds: 45 * 60, // 45 minutes
+      durationSeconds: 45 * 60,
       timeRemaining: 45 * 60,
       timerInterval: null,
-      submitted: false,
-      reviewMode: false
+      submitted: false
     }
   };
 
@@ -85,9 +78,7 @@
   function initAudio() {
     if (!audioCtx) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        audioCtx = new AudioContext();
-      }
+      if (AudioContext) audioCtx = new AudioContext();
     }
     if (audioCtx && audioCtx.state === 'suspended') {
       audioCtx.resume();
@@ -102,11 +93,10 @@
 
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-
       const startTime = audioCtx.currentTime + delay;
+
       osc.type = type;
       osc.frequency.setValueAtTime(freq, startTime);
-
       gain.gain.setValueAtTime(gainValue, startTime);
       gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
@@ -123,36 +113,27 @@
   const SoundFX = {
     correct() {
       if (navigator.vibrate) try { navigator.vibrate(35); } catch (e) {}
-      // Ascending C major chime
-      playTone(523.25, 'sine', 0.12, 0.15, 0.00); // C5
-      playTone(659.25, 'sine', 0.14, 0.15, 0.07); // E5
-      playTone(783.99, 'sine', 0.16, 0.15, 0.14); // G5
-      playTone(1046.50, 'sine', 0.28, 0.20, 0.21); // C6
+      playTone(523.25, 'sine', 0.12, 0.15, 0.00);
+      playTone(659.25, 'sine', 0.14, 0.15, 0.07);
+      playTone(783.99, 'sine', 0.16, 0.15, 0.14);
+      playTone(1046.50, 'sine', 0.28, 0.20, 0.21);
     },
     wrong() {
       if (navigator.vibrate) try { navigator.vibrate([60, 40, 60]); } catch (e) {}
-      // Low double buzz
       playTone(220, 'triangle', 0.18, 0.18, 0.00);
       playTone(180, 'sawtooth', 0.22, 0.15, 0.08);
     },
     streak() {
       if (navigator.vibrate) try { navigator.vibrate([40, 30, 50]); } catch (e) {}
-      // Glissando sweep
       playTone(440, 'triangle', 0.08, 0.12, 0.00);
       playTone(554.37, 'triangle', 0.08, 0.12, 0.06);
       playTone(659.25, 'triangle', 0.12, 0.15, 0.12);
       playTone(880, 'sine', 0.25, 0.20, 0.18);
     },
     levelUp() {
-      // Triumphant Fanfare
-      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-      notes.forEach((freq, idx) => {
+      [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, idx) => {
         playTone(freq, 'triangle', 0.25, 0.18, idx * 0.08);
       });
-    },
-    lifeline() {
-      playTone(880, 'sine', 0.1, 0.15, 0.00);
-      playTone(1320, 'sine', 0.15, 0.15, 0.06);
     },
     tick() {
       playTone(700, 'triangle', 0.04, 0.05, 0);
@@ -160,7 +141,7 @@
   };
 
   // --------------------------------------------------------------------------
-  // Confetti Particle Physics System
+  // Confetti Particle Physics
   // --------------------------------------------------------------------------
   const Confetti = {
     canvas: null,
@@ -182,18 +163,17 @@
       this.canvas.height = window.innerHeight;
     },
 
-    burst(count = 60) {
+    burst(count = 50) {
       if (!this.canvas) return;
-      const colors = ['#10b981', '#38bdf8', '#f59e0b', '#ec4899', '#a855f7', '#fbbf24'];
+      const colors = ['#1e40af', '#10b981', '#f59e0b', '#ec4899', '#38bdf8'];
       const cx = window.innerWidth / 2;
       const cy = window.innerHeight * 0.35;
 
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 8 + 4;
+        const speed = Math.random() * 7 + 3;
         this.particles.push({
-          x: cx,
-          y: cy,
+          x: cx, y: cy,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed - 4,
           size: Math.random() * 8 + 4,
@@ -201,13 +181,10 @@
           rotation: Math.random() * 360,
           rotSpeed: (Math.random() - 0.5) * 12,
           alpha: 1,
-          decay: Math.random() * 0.015 + 0.01
+          decay: Math.random() * 0.015 + 0.015
         });
       }
-
-      if (!this.animId) {
-        this.loop();
-      }
+      if (!this.animId) this.loop();
     },
 
     loop() {
@@ -216,9 +193,8 @@
 
       for (let i = this.particles.length - 1; i >= 0; i--) {
         const p = this.particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.25; // gravity
+        p.x += p.vx; p.y += p.vy;
+        p.vy += 0.25;
         p.vx *= 0.98;
         p.rotation += p.rotSpeed;
         p.alpha -= p.decay;
@@ -246,13 +222,11 @@
   };
 
   // --------------------------------------------------------------------------
-  // XP & Rank Calculations
+  // XP & Career Progression
   // --------------------------------------------------------------------------
   function getCurrentRank(xp) {
     for (let i = RANKS.length - 1; i >= 0; i--) {
-      if (xp >= RANKS[i].minXp) {
-        return RANKS[i];
-      }
+      if (xp >= RANKS[i].minXp) return RANKS[i];
     }
     return RANKS[0];
   }
@@ -266,105 +240,51 @@
     updateRankUI();
 
     if (newRank.level > prevRank.level) {
-      // Level UP celebration!
       SoundFX.levelUp();
-      Confetti.burst(100);
-      showRankUpNotification(newRank);
+      Confetti.burst(80);
+      alert(`🎉 PROMOTION EARNED!\n\nYou have been promoted to ${newRank.title} (Level ${newRank.level})!`);
     }
-  }
-
-  function showRankUpNotification(rank) {
-    const banner = document.createElement('div');
-    banner.style.cssText = `
-      position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-      background: linear-gradient(135deg, #064e3b, #0f172a);
-      border: 2px solid #f59e0b; border-radius: 16px; padding: 16px 24px;
-      color: #fff; z-index: 9999; box-shadow: 0 10px 35px rgba(245, 158, 11, 0.4);
-      display: flex; align-items: center; gap: 14px; animation: fadeIn 0.3s ease;
-    `;
-    banner.innerHTML = `
-      <div style="font-size: 2rem;">${rank.icon}</div>
-      <div>
-        <div style="font-size: 0.8rem; color: #fbbf24; font-weight: 800; text-transform: uppercase;">PROMOTION EARNED!</div>
-        <div style="font-size: 1.15rem; font-weight: 800;">Ranked: ${rank.title} (Level ${rank.level})</div>
-      </div>
-    `;
-    document.body.appendChild(banner);
-    setTimeout(() => {
-      banner.style.opacity = '0';
-      banner.style.transition = 'opacity 0.4s';
-      setTimeout(() => banner.remove(), 400);
-    }, 3500);
   }
 
   function updateRankUI() {
     const rank = getCurrentRank(state.xp);
-    const titleEl = document.getElementById('rank-title');
-    const xpTextEl = document.getElementById('rank-xp-text');
-    const iconEl = document.getElementById('rank-icon');
+    const rankTitle = document.getElementById('rank-title');
+    const rankXp = document.getElementById('rank-xp-text');
+    const rankIcon = document.getElementById('rank-icon');
 
-    if (titleEl) titleEl.textContent = rank.title;
-    if (iconEl) iconEl.textContent = rank.icon;
-
-    if (xpTextEl) {
-      if (rank.level === 9) {
-        xpTextEl.textContent = `${state.xp.toLocaleString()} XP (Max Rank)`;
-      } else {
-        const nextXp = rank.maxXp;
-        xpTextEl.textContent = `${state.xp.toLocaleString()} / ${nextXp.toLocaleString()} XP (Lvl ${rank.level})`;
-      }
+    if (rankTitle) rankTitle.textContent = rank.title;
+    if (rankIcon) rankIcon.textContent = rank.icon;
+    if (rankXp) {
+      rankXp.textContent = rank.level === 9 ? `${state.xp.toLocaleString()} XP (VC)` : `${state.xp} / ${rank.maxXp} XP`;
     }
+
+    // Profile screen stats
+    const profPill = document.getElementById('profile-rank-pill');
+    const profXp = document.getElementById('profile-xp-val');
+    const profNext = document.getElementById('profile-next-rank-val');
+    const profFill = document.getElementById('profile-progress-fill');
+
+    if (profPill) profPill.textContent = `${rank.title} (Level ${rank.level})`;
+    if (profXp) profXp.textContent = `${state.xp.toLocaleString()} XP`;
+    if (profNext) profNext.textContent = `${rank.maxXp.toLocaleString()} XP`;
+    if (profFill) {
+      const pct = Math.min(100, Math.round((state.xp / rank.maxXp) * 100));
+      profFill.style.width = `${pct}%`;
+    }
+
+    const pScore = document.getElementById('p-stat-score');
+    const pPct = document.getElementById('p-stat-pct');
+    const pStreak = document.getElementById('p-stat-streak');
+    const pAtt = document.getElementById('p-stat-attempted');
+
+    if (pScore) pScore.textContent = state.score;
+    if (pPct) pPct.textContent = state.attempted > 0 ? `${Math.round((state.score / state.attempted) * 100)}%` : '0%';
+    if (pStreak) pStreak.textContent = state.maxStreak;
+    if (pAtt) pAtt.textContent = state.attempted;
   }
 
   // --------------------------------------------------------------------------
-  // Question Bank Utilities & Hint Generator
-  // --------------------------------------------------------------------------
-  function generateHint(item) {
-    // Generate high-yield smart clue based on question properties
-    const exp = item.exp || '';
-    if (item.sec === 'UNIOSUN') {
-      if (item.q.includes('license')) return "Think of December 2006 (just right before 2007).";
-      if (item.q.includes('Chancellor') && !item.q.includes('Pioneer')) return "Popularly known as 'Mama BOVAS'.";
-      if (item.q.includes('Pro-Chancellor')) return "A distinguished professor formerly a key national party secretary.";
-      if (item.q.includes('motto')) return "Remember the Living Spring water motif of Osun!";
-      if (item.q.includes('Management')) return "Hosted in Okuku campus.";
-      if (item.q.includes('Law')) return "Think of Ifetedo campus.";
-      if (item.q.includes('Agriculture')) return "Hosted in Ejigbo campus.";
-      if (item.q.includes('Humanities')) return "Hosted in Ikire campus.";
-      if (item.q.includes('Registrar')) return "Mrs. Atinuke Abosede Oguntunde.";
-    }
-    if (item.sec === 'PEDAGOGY') {
-      if (item.q.includes('ratio') || item.q.includes('CCMAS')) return "The national core takes the major 70% chunk; university peculiarity gets 30%.";
-      if (item.q.includes('attendance')) return "Three-quarters (75%) presence is mandatory.";
-      if (item.q.includes('Salami')) return "Think of slicing a single sausage into pieces!";
-      if (item.q.includes('Validity')) return "Measures what it actually purports to measure.";
-      if (item.q.includes('Reliability')) return "Consistent, repeatable results across trials.";
-      if (item.q.includes('Triad') || item.q.includes('mandates')) return "Teaching, Research, and Community Service.";
-    }
-    if (item.sec === 'IT') {
-      if (item.q.includes('OSI') && item.q.includes('packet')) return "Layer 3 handles logical routing!";
-      if (item.q.includes('/27')) return "Formula: 2^(32-27) - 2 = 32 - 2 = 30.";
-      if (item.q.includes('ARP')) return "Resolves IP (Layer 3) to MAC address (Layer 2).";
-      if (item.q.includes('403')) return "Server understands who you are, but you are FORBIDDEN access.";
-      if (item.q.includes('Starvation')) return "Aging gradually boosts priority to cure this!";
-      if (item.q.includes('Thrashing')) return "When the CPU spends more time paging than executing code.";
-    }
-    if (item.sec === 'APTITUDE') {
-      if (item.q.includes('Speaker')) return "Rt. Hon. Adewale Olumide Egbedun.";
-      if (item.q.includes('CJN')) return "Hon. Justice Kudirat Kekere-Ekun.";
-      if (item.q.includes('Anthem')) return "Written by Lillian Jean Williams; music by Frances Benda.";
-    }
-
-    // Default snippet from explanation
-    const words = exp.split(' ');
-    if (words.length > 5) {
-      return words.slice(0, 7).join(' ') + '...';
-    }
-    return exp || "Recall the core definitions from the UNIOSUN orientation guide.";
-  }
-
-  // --------------------------------------------------------------------------
-  // Deck Loading & Filtering
+  // Deck Loading & Mode Switching
   // --------------------------------------------------------------------------
   function loadDeck() {
     if (state.mode === 'PRACTICE') {
@@ -373,72 +293,61 @@
       } else {
         state.deck = questionBank.filter(q => q.sec === state.filterCat);
       }
+    } else if (state.mode === 'EXAM') {
+      state.deck = state.exam.questions;
     } else if (state.mode === 'VAULT') {
       const vaultIds = new Set([...state.vault, ...state.missed]);
       state.deck = questionBank.filter(q => vaultIds.has(q.id));
       if (state.deck.length === 0) {
-        state.deck = [
-          {
-            id: 0,
-            sec: 'UNIOSUN',
-            secTitle: 'Revision Vault Empty',
-            part: 'All Clear!',
-            q: 'Your Revision Vault is currently empty! Any questions you miss or bookmark will automatically appear here for rapid drilling.',
-            opts: [
-              'Switch to Practice Mode',
-              'Take a Mock Exam',
-              'Open Cram Sheet',
-              'Keep Drilling'
-            ],
-            ans: 0,
-            exp: 'Switch to Practice Mode or Mock Exam to start testing your knowledge!'
-          }
-        ];
+        state.deck = [{
+          id: 0,
+          sec: 'UNIOSUN',
+          secTitle: 'Revision Vault',
+          part: 'All Caught Up',
+          q: 'Your revision vault is currently empty! Missed or flagged questions appear here automatically.',
+          opts: ['Switch to Practice Mode', 'Take a Mock Exam', 'Review Cram Sheet', 'Return to Home'],
+          ans: 0,
+          exp: 'Switch to Practice or Mock Exam to start testing!'
+        }];
       }
-    } else if (state.mode === 'EXAM') {
-      // Mock Exam: Proportional sampling across pillars (Total 60 Questions)
-      state.deck = state.exam.questions;
     }
 
     state.currentIdx = 0;
     renderCurrentQuestion();
-    updateVaultBadges();
+    updateStatusSummary();
+    updateVaultUI();
   }
 
   function startExamMode() {
-    // Proportional distribution:
-    // IT: 24 questions (from 80)
-    // UNIOSUN: 15 questions (from 50)
-    // PEDAGOGY: 12 questions (from 40)
-    // APTITUDE: 9 questions (from 30)
-    // Total = 60 questions!
+    // Proportional 60 Questions:
+    // IT: 24, UNIOSUN: 15, PEDAGOGY: 12, APTITUDE: 9
     const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
 
     const itPool = shuffle(questionBank.filter(q => q.sec === 'IT')).slice(0, 24);
-    const uniosunPool = shuffle(questionBank.filter(q => q.sec === 'UNIOSUN')).slice(0, 15);
+    const uniPool = shuffle(questionBank.filter(q => q.sec === 'UNIOSUN')).slice(0, 15);
     const pedPool = shuffle(questionBank.filter(q => q.sec === 'PEDAGOGY')).slice(0, 12);
     const aptPool = shuffle(questionBank.filter(q => q.sec === 'APTITUDE')).slice(0, 9);
 
-    const fullExamList = shuffle([...itPool, ...uniosunPool, ...pedPool, ...aptPool]);
+    const examQuestions = shuffle([...itPool, ...uniPool, ...pedPool, ...aptPool]);
 
     state.exam.active = true;
-    state.exam.questions = fullExamList;
-    state.exam.userAnswers = new Array(fullExamList.length).fill(-1);
+    state.exam.questions = examQuestions;
+    state.exam.userAnswers = new Array(examQuestions.length).fill(-1);
     state.exam.flagged = new Set();
     state.exam.submitted = false;
-    state.exam.reviewMode = false;
     state.exam.timeRemaining = state.exam.durationSeconds;
 
-    state.deck = fullExamList;
+    state.mode = 'EXAM';
+    state.deck = examQuestions;
     state.currentIdx = 0;
 
     startExamTimer();
-    renderCbtMatrix();
     renderCurrentQuestion();
+    updateStatusSummary();
   }
 
   // --------------------------------------------------------------------------
-  // Timer Engines
+  // Timer Management
   // --------------------------------------------------------------------------
   function startPracticeTimer() {
     clearInterval(state.timerInterval);
@@ -449,14 +358,10 @@
     state.timerInterval = setInterval(() => {
       state.timeLeft--;
       updateTimerUI();
-      if (state.timeLeft <= 5 && state.timeLeft > 0) {
-        SoundFX.tick();
-      }
+      if (state.timeLeft <= 5 && state.timeLeft > 0) SoundFX.tick();
       if (state.timeLeft <= 0) {
         clearInterval(state.timerInterval);
-        if (!state.answeredInCurrent) {
-          handleAnswerSelect(-1); // Time out!
-        }
+        if (!state.answeredInCurrent) handleAnswerSelect(-1);
       }
     }, 1000);
   }
@@ -468,176 +373,143 @@
     state.exam.timerInterval = setInterval(() => {
       state.exam.timeRemaining--;
       updateExamTimerUI();
-
       if (state.exam.timeRemaining <= 0) {
         clearInterval(state.exam.timerInterval);
-        submitExam(true); // Auto submit on timer expiry!
+        submitExam(true);
       }
     }, 1000);
   }
 
   function updateTimerUI() {
     const timerEl = document.getElementById('stat-timer');
-    const badgeEl = document.getElementById('timer-badge');
-    if (!timerEl || !badgeEl) return;
+    const timerPill = document.getElementById('timer-pill');
+    if (!timerEl || !timerPill) return;
 
     timerEl.textContent = state.timeLeft;
-    if (state.timeLeft <= 5) {
-      badgeEl.classList.add('urgent');
-    } else {
-      badgeEl.classList.remove('urgent');
-    }
+    timerPill.classList.toggle('urgent', state.timeLeft <= 5);
   }
 
   function updateExamTimerUI() {
     const timerEl = document.getElementById('stat-timer');
-    const badgeEl = document.getElementById('timer-badge');
-    if (!timerEl || !badgeEl) return;
+    const timerPill = document.getElementById('timer-pill');
+    if (!timerEl || !timerPill) return;
 
     const m = Math.floor(state.exam.timeRemaining / 60);
     const s = state.exam.timeRemaining % 60;
-    const formatted = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    timerEl.textContent = formatted;
-
-    if (state.exam.timeRemaining <= 300) {
-      badgeEl.classList.add('urgent');
-    } else {
-      badgeEl.classList.remove('urgent');
-    }
+    timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    timerPill.classList.toggle('urgent', state.exam.timeRemaining <= 300);
   }
 
   // --------------------------------------------------------------------------
-  // Render Current Question
+  // Render Active Question (Conventional Mobile CBT Pattern)
   // --------------------------------------------------------------------------
   function renderCurrentQuestion() {
     const item = state.deck[state.currentIdx];
     if (!item) return;
 
     state.answeredInCurrent = false;
-    state.selectedOptionIdx = -1;
 
-    // Category & Part Tags
-    const catEl = document.getElementById('q-category');
-    const partEl = document.getElementById('q-part');
-    const promptEl = document.getElementById('q-prompt');
-    const expPanel = document.getElementById('explanation-panel');
-    const hintPanel = document.getElementById('hint-panel');
-    const bookmarkBtn = document.getElementById('bookmark-btn');
+    // Header Tags
+    const qNumLabel = document.getElementById('q-number-label');
+    const qSecTag = document.getElementById('q-sec-tag');
+    const qSubpart = document.getElementById('q-subpart-text');
+    const qPrompt = document.getElementById('q-prompt');
+    const hintBox = document.getElementById('hint-panel');
+    const expBox = document.getElementById('explanation-panel');
     const flagBtn = document.getElementById('flag-btn');
 
-    catEl.textContent = item.secTitle || item.sec;
-    partEl.textContent = item.part || '';
-    promptEl.textContent = `Q${state.currentIdx + 1}. ${item.q}`;
+    if (qNumLabel) qNumLabel.textContent = `Question ${state.currentIdx + 1}`;
+    if (qSecTag) qSecTag.textContent = item.secTitle || item.sec;
+    if (qSubpart) qSubpart.textContent = item.part || '';
+    if (qPrompt) qPrompt.textContent = item.q;
 
-    // Reset Panels
-    expPanel.style.display = 'none';
-    hintPanel.style.display = 'none';
+    // Reset boxes
+    if (hintBox) hintBox.style.display = 'none';
+    if (expBox) expBox.style.display = 'none';
 
-    // Bookmark State
-    const isBookmarked = state.vault.has(item.id);
-    bookmarkBtn.classList.toggle('bookmarked', isBookmarked);
-    document.getElementById('bookmark-text').textContent = isBookmarked ? 'Bookmarked' : 'Bookmark';
+    // Flag status
+    const isFlagged = state.mode === 'EXAM' ? state.exam.flagged.has(state.currentIdx) : state.flagged.has(item.id);
+    if (flagBtn) {
+      flagBtn.classList.toggle('active', isFlagged);
+      document.getElementById('flag-btn-text').textContent = isFlagged ? 'Flagged' : 'Flag';
+    }
 
-    // Progress
-    const total = state.deck.length;
-    const current = state.currentIdx + 1;
-    document.getElementById('progress-text').textContent = `Question ${current} of ${total}`;
-    const pct = Math.round((current / total) * 100);
-    document.getElementById('session-progress-pct').textContent = `${pct}% Complete`;
-    document.getElementById('progress-bar').style.width = `${pct}%`;
-
-    // Render Options
+    // Render Options List
     const container = document.getElementById('options-container');
     container.innerHTML = '';
-
     const letters = ['A', 'B', 'C', 'D'];
 
-    // In Exam Review Mode, or if previously answered in Exam Mode
-    let prevExamAns = -1;
+    let prevAns = -1;
     if (state.mode === 'EXAM') {
-      prevExamAns = state.exam.userAnswers[state.currentIdx];
+      prevAns = state.exam.userAnswers[state.currentIdx];
     }
 
     item.opts.forEach((optText, idx) => {
-      const btn = document.createElement('button');
-      btn.className = 'option-btn';
-      btn.id = `opt-btn-${idx}`;
+      const card = document.createElement('div');
+      card.className = 'option-radio-card';
+      card.id = `opt-card-${idx}`;
 
-      const keySpan = document.createElement('span');
-      keySpan.className = 'option-key';
-      keySpan.textContent = letters[idx];
+      const circle = document.createElement('div');
+      circle.className = 'radio-circle';
+      const dot = document.createElement('div');
+      dot.className = 'radio-dot';
+      circle.appendChild(dot);
 
-      const contentSpan = document.createElement('span');
-      contentSpan.className = 'option-content';
-      contentSpan.textContent = optText;
+      const content = document.createElement('div');
+      content.className = 'option-text-content';
+      content.innerHTML = `<span class="option-letter-badge">${letters[idx]}.</span> ${optText}`;
 
-      btn.appendChild(keySpan);
-      btn.appendChild(contentSpan);
+      card.appendChild(circle);
+      card.appendChild(content);
 
-      // If in Exam Review Mode, show answers
       if (state.mode === 'EXAM' && state.exam.submitted) {
-        btn.disabled = true;
-        if (idx === item.ans) {
-          btn.classList.add('correct');
-        } else if (idx === prevExamAns) {
-          btn.classList.add('wrong');
-        }
+        card.style.pointerEvents = 'none';
+        if (idx === item.ans) card.classList.add('correct');
+        else if (idx === prevAns) card.classList.add('wrong');
       } else if (state.mode === 'EXAM') {
-        // Pre-select if already chosen
-        if (idx === prevExamAns) {
-          btn.style.borderColor = '#38bdf8';
-          btn.style.background = 'rgba(56, 189, 248, 0.15)';
-        }
-        btn.onclick = () => selectExamAnswer(idx);
+        if (idx === prevAns) card.classList.add('selected');
+        card.onclick = () => selectExamAnswer(idx);
       } else {
-        // Practice / Vault Mode
-        btn.onclick = () => handleAnswerSelect(idx);
+        card.onclick = () => handleAnswerSelect(idx);
       }
 
-      container.appendChild(btn);
+      container.appendChild(card);
     });
 
-    // Practice Mode: Start 25s question timer
+    // Control buttons visibility
+    const submitBtn = document.getElementById('submit-exam-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const lifelinesBar = document.getElementById('lifelines-bar');
+    const catSelector = document.getElementById('category-selector-wrapper');
+
     if (state.mode === 'PRACTICE') {
       startPracticeTimer();
-      document.getElementById('next-btn').style.display = 'none';
-      document.getElementById('lifelines-row').style.display = 'flex';
-      document.getElementById('cbt-matrix-panel').style.display = 'none';
-      document.getElementById('submit-exam-btn').style.display = 'none';
-      if (flagBtn) flagBtn.style.display = 'none';
+      if (lifelinesBar) lifelinesBar.style.display = 'flex';
+      if (catSelector) catSelector.style.display = 'block';
+      if (submitBtn) submitBtn.style.display = 'none';
+      if (nextBtn) nextBtn.style.display = 'flex';
     } else if (state.mode === 'EXAM') {
-      document.getElementById('lifelines-row').style.display = 'none';
-      document.getElementById('cbt-matrix-panel').style.display = 'block';
-      document.getElementById('submit-exam-btn').style.display = 'inline-flex';
-      document.getElementById('next-btn').style.display = 'inline-flex';
-      if (flagBtn) flagBtn.style.display = 'inline-flex';
+      if (lifelinesBar) lifelinesBar.style.display = 'none';
+      if (catSelector) catSelector.style.display = 'none';
+      if (submitBtn) submitBtn.style.display = 'flex';
+      if (nextBtn) nextBtn.style.display = 'flex';
 
-      // Update flag button status
-      const isFlagged = state.exam.flagged.has(state.currentIdx);
-      flagBtn.classList.toggle('active', isFlagged);
-      flagBtn.textContent = isFlagged ? '🚩 Flagged' : '🏳️ Flag';
-
-      // If exam submitted (review mode), show explanation!
       if (state.exam.submitted) {
-        showExplanation(prevExamAns === item.ans, item.exp);
+        showExplanation(prevAns === item.ans, item.exp);
       }
-    } else if (state.mode === 'VAULT') {
-      startPracticeTimer();
-      document.getElementById('next-btn').style.display = 'none';
-      document.getElementById('lifelines-row').style.display = 'flex';
-      document.getElementById('cbt-matrix-panel').style.display = 'none';
-      document.getElementById('submit-exam-btn').style.display = 'none';
-      if (flagBtn) flagBtn.style.display = 'none';
     }
 
-    // Refresh CBT Matrix indicators if in exam mode
-    if (state.mode === 'EXAM') {
-      updateMatrixGridState();
+    // Update Center Pill Matrix Trigger text
+    const matrixBtnText = document.getElementById('matrix-btn-text');
+    if (matrixBtnText) {
+      matrixBtnText.textContent = `${state.currentIdx + 1} / ${state.deck.length}`;
     }
+
+    updateStatusSummary();
   }
 
   // --------------------------------------------------------------------------
-  // Practice Mode Answer Evaluation
+  // Practice Answer Selection
   // --------------------------------------------------------------------------
   function handleAnswerSelect(selectedIdx) {
     if (state.answeredInCurrent) return;
@@ -647,103 +519,65 @@
     const item = state.deck[state.currentIdx];
     const isCorrect = selectedIdx === item.ans;
 
-    // Visual buttons feedback
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach((btn, idx) => {
-      btn.disabled = true;
-      if (idx === item.ans) {
-        btn.classList.add('correct');
-      } else if (idx === selectedIdx) {
-        btn.classList.add('wrong');
-      }
+    const cards = document.querySelectorAll('.option-radio-card');
+    cards.forEach((card, idx) => {
+      card.style.pointerEvents = 'none';
+      if (idx === item.ans) card.classList.add('correct');
+      else if (idx === selectedIdx) card.classList.add('wrong');
     });
 
-    // Update Stats
     state.attempted++;
     if (isCorrect) {
       state.score++;
       state.streak++;
-      if (state.streak > state.maxStreak) {
-        state.maxStreak = state.streak;
-      }
+      if (state.streak > state.maxStreak) state.maxStreak = state.streak;
 
       SoundFX.correct();
 
-      // XP calculation: Base 25 + speed bonus + streak multiplier
-      const timeElapsed = (Date.now() - state.questionStartTime) / 1000;
-      let speedBonus = 0;
-      if (timeElapsed < 8) speedBonus = 15;
-      else if (timeElapsed < 15) speedBonus = 10;
+      // XP & bonus
+      const elapsed = (Date.now() - state.questionStartTime) / 1000;
+      const speedBonus = elapsed < 8 ? 15 : elapsed < 15 ? 10 : 0;
+      const multiplier = state.streak >= 10 ? 2.0 : state.streak >= 5 ? 1.5 : 1.0;
+      addXP(Math.round((25 + speedBonus) * multiplier));
 
-      let multiplier = 1.0;
-      if (state.streak >= 15) multiplier = 3.0;
-      else if (state.streak >= 10) multiplier = 2.0;
-      else if (state.streak >= 5) multiplier = 1.5;
-      else if (state.streak >= 3) multiplier = 1.25;
-
-      const earnedXP = Math.round((25 + speedBonus) * multiplier);
-      addXP(earnedXP);
-
-      // Streak celebration milestones!
-      if (state.streak === 5 || state.streak === 10 || state.streak === 15) {
+      if (state.streak === 5 || state.streak === 10) {
         SoundFX.streak();
-        Confetti.burst(50);
-        // Recharge 1 lifeline as reward!
+        Confetti.burst(40);
         state.lifelines.fifties = Math.min(5, state.lifelines.fifties + 1);
         updateLifelineButtons();
       }
     } else {
       state.streak = 0;
       SoundFX.wrong();
-
-      // Automatically log to missed questions set
       state.missed.add(item.id);
       localStorage.setItem('uniosun_missed', JSON.stringify([...state.missed]));
-      updateVaultBadges();
+      updateVaultUI();
     }
 
-    updateStatsUI();
     showExplanation(isCorrect, item.exp);
-    document.getElementById('next-btn').style.display = 'inline-flex';
+    updateStatusSummary();
   }
 
-  function showExplanation(isCorrect, explanationText) {
-    const expPanel = document.getElementById('explanation-panel');
-    const header = document.getElementById('explanation-header');
+  function showExplanation(isCorrect, expText) {
+    const expBox = document.getElementById('explanation-panel');
+    const header = document.getElementById('exp-header');
     const verdict = document.getElementById('feedback-verdict');
     const icon = document.getElementById('feedback-icon');
     const body = document.getElementById('explanation-text');
 
-    expPanel.style.display = 'block';
+    if (!expBox) return;
+    expBox.style.display = 'block';
 
     if (isCorrect) {
-      header.className = 'explanation-header correct-text';
+      header.className = 'exp-header correct';
       verdict.textContent = 'Correct!';
       icon.textContent = '✅';
     } else {
-      header.className = 'explanation-header wrong-text';
+      header.className = 'exp-header wrong';
       verdict.textContent = 'Missed / Time Up!';
       icon.textContent = '❌';
     }
-
-    body.textContent = explanationText;
-  }
-
-  function updateStatsUI() {
-    document.getElementById('stat-score').textContent = state.score;
-    document.getElementById('stat-attempted').textContent = state.attempted;
-    const pct = state.attempted > 0 ? Math.round((state.score / state.attempted) * 100) : 0;
-    document.getElementById('stat-pct').textContent = `${pct}%`;
-
-    const streakEl = document.getElementById('stat-streak');
-    const streakBadge = document.getElementById('streak-badge');
-    streakEl.textContent = state.streak;
-
-    if (state.streak >= 5) {
-      streakBadge.classList.add('on-fire');
-    } else {
-      streakBadge.classList.remove('on-fire');
-    }
+    body.textContent = expText || 'Review the official UNIOSUN syllabus guidelines.';
   }
 
   // --------------------------------------------------------------------------
@@ -752,74 +586,39 @@
   function selectExamAnswer(selectedIdx) {
     state.exam.userAnswers[state.currentIdx] = selectedIdx;
 
-    // Visual selection
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach((btn, idx) => {
-      if (idx === selectedIdx) {
-        btn.style.borderColor = '#38bdf8';
-        btn.style.background = 'rgba(56, 189, 248, 0.15)';
-      } else {
-        btn.style.borderColor = '#293548';
-        btn.style.background = 'rgba(15, 23, 42, 0.95)';
-      }
+    const cards = document.querySelectorAll('.option-radio-card');
+    cards.forEach((card, idx) => {
+      card.classList.toggle('selected', idx === selectedIdx);
     });
 
-    updateMatrixGridState();
+    updateStatusSummary();
   }
 
-  function toggleFlagQuestion() {
-    if (state.mode !== 'EXAM') return;
-    const idx = state.currentIdx;
-    if (state.exam.flagged.has(idx)) {
-      state.exam.flagged.delete(idx);
+  function toggleFlag() {
+    if (state.mode === 'EXAM') {
+      const idx = state.currentIdx;
+      if (state.exam.flagged.has(idx)) state.exam.flagged.delete(idx);
+      else state.exam.flagged.add(idx);
     } else {
-      state.exam.flagged.add(idx);
+      const item = state.deck[state.currentIdx];
+      if (!item) return;
+      if (state.flagged.has(item.id)) state.flagged.delete(item.id);
+      else {
+        state.flagged.add(item.id);
+        state.vault.add(item.id);
+        localStorage.setItem('uniosun_vault', JSON.stringify([...state.vault]));
+      }
     }
 
     const flagBtn = document.getElementById('flag-btn');
-    const isFlagged = state.exam.flagged.has(idx);
-    flagBtn.classList.toggle('active', isFlagged);
-    flagBtn.textContent = isFlagged ? '🚩 Flagged' : '🏳️ Flag';
+    const isFlagged = state.mode === 'EXAM' ? state.exam.flagged.has(state.currentIdx) : state.flagged.has(state.deck[state.currentIdx].id);
+    if (flagBtn) {
+      flagBtn.classList.toggle('active', isFlagged);
+      document.getElementById('flag-btn-text').textContent = isFlagged ? 'Flagged' : 'Flag';
+    }
 
-    updateMatrixGridState();
-  }
-
-  function renderCbtMatrix() {
-    const grid = document.getElementById('matrix-grid');
-    grid.innerHTML = '';
-
-    state.exam.questions.forEach((q, idx) => {
-      const btn = document.createElement('button');
-      btn.className = 'matrix-btn';
-      btn.id = `matrix-btn-${idx}`;
-      btn.textContent = idx + 1;
-      btn.onclick = () => {
-        state.currentIdx = idx;
-        renderCurrentQuestion();
-      };
-      grid.appendChild(btn);
-    });
-  }
-
-  function updateMatrixGridState() {
-    if (state.mode !== 'EXAM') return;
-
-    state.exam.questions.forEach((q, idx) => {
-      const btn = document.getElementById(`matrix-btn-${idx}`);
-      if (!btn) return;
-
-      btn.className = 'matrix-btn';
-
-      if (idx === state.currentIdx) {
-        btn.classList.add('current');
-      }
-
-      if (state.exam.flagged.has(idx)) {
-        btn.classList.add('flagged');
-      } else if (state.exam.userAnswers[idx] !== -1) {
-        btn.classList.add('answered');
-      }
-    });
+    updateStatusSummary();
+    updateVaultUI();
   }
 
   function submitExam(force = false) {
@@ -830,84 +629,65 @@
 
     if (!force) {
       const unanswered = totalCount - answeredCount;
-      const confirmMsg = unanswered > 0
-        ? `You have answered ${answeredCount} of ${totalCount} questions (${unanswered} unanswered).\n\nDo you want to submit your CBT examination now?`
-        : `You have answered all ${totalCount} questions!\n\nSubmit and view your regularisation result?`;
+      const msg = unanswered > 0
+        ? `You answered ${answeredCount} of ${totalCount} questions (${unanswered} unanswered).\n\nDo you want to submit your examination now?`
+        : `You have answered all ${totalCount} questions!\n\nSubmit and view your result?`;
 
-      if (!confirm(confirmMsg)) {
-        return;
-      }
+      if (!confirm(msg)) return;
     }
 
     clearInterval(state.exam.timerInterval);
     state.exam.submitted = true;
 
-    // Calculate Scores & Breakdown by Pillar
     let correctCount = 0;
-    const pillarScores = {
-      IT: { correct: 0, total: 0, title: '💻 IT & Computing' },
-      UNIOSUN: { correct: 0, total: 0, title: '🏛️ UNIOSUN & Osun' },
-      PEDAGOGY: { correct: 0, total: 0, title: '📚 Pedagogy & Ethics' },
-      APTITUDE: { correct: 0, total: 0, title: '🧠 Current Affairs & Logic' }
+    const pillars = {
+      IT: { correct: 0, total: 0, title: 'IT & Computing' },
+      UNIOSUN: { correct: 0, total: 0, title: 'UNIOSUN & Osun' },
+      PEDAGOGY: { correct: 0, total: 0, title: 'Pedagogy & Ethics' },
+      APTITUDE: { correct: 0, total: 0, title: 'Current Affairs & Logic' }
     };
 
     state.exam.questions.forEach((q, idx) => {
-      const userAns = state.exam.userAnswers[idx];
-      const isCorrect = userAns === q.ans;
+      const isCorrect = state.exam.userAnswers[idx] === q.ans;
       const sec = q.sec || 'IT';
-
-      if (pillarScores[sec]) {
-        pillarScores[sec].total++;
-        if (isCorrect) pillarScores[sec].correct++;
+      if (pillars[sec]) {
+        pillars[sec].total++;
+        if (isCorrect) pillars[sec].correct++;
       }
-
-      if (isCorrect) {
-        correctCount++;
-      } else {
-        state.missed.add(q.id);
-      }
+      if (isCorrect) correctCount++;
+      else state.missed.add(q.id);
     });
 
     localStorage.setItem('uniosun_missed', JSON.stringify([...state.missed]));
-    updateVaultBadges();
+    updateVaultUI();
 
-    const scorePct = Math.round((correctCount / totalCount) * 100);
+    const pct = Math.round((correctCount / totalCount) * 100);
+    addXP(correctCount * 30 + (pct >= 70 ? 500 : 200));
 
-    // Award XP based on exam score!
-    const earnedExamXP = correctCount * 30 + (scorePct >= 70 ? 500 : 200);
-    addXP(earnedExamXP);
-
-    // Show Results Modal
-    showExamResultsModal(correctCount, totalCount, scorePct, pillarScores);
-  }
-
-  function showExamResultsModal(correct, total, pct, pillars) {
+    // Show result modal
     const modal = document.getElementById('results-modal');
-    const verdictBadge = document.getElementById('modal-verdict-badge');
-    const scorePctEl = document.getElementById('modal-score-pct');
-    const scoreDetailEl = document.getElementById('modal-score-detail');
-    const pillarsContainer = document.getElementById('modal-pillars-breakdown');
+    const vBadge = document.getElementById('modal-verdict-badge');
+    const sPct = document.getElementById('modal-score-pct');
+    const sDetail = document.getElementById('modal-score-detail');
+    const pContainer = document.getElementById('modal-pillars-breakdown');
 
-    scorePctEl.textContent = `${pct}%`;
-    scoreDetailEl.textContent = `You scored ${correct} out of ${total} questions correctly`;
+    sPct.textContent = `${pct}%`;
+    sDetail.textContent = `Scored ${correctCount} of ${totalCount} questions correctly`;
 
     if (pct >= 70) {
-      verdictBadge.className = 'verdict-badge pass';
-      verdictBadge.textContent = 'DISTINCTION — REGULARISATION CONFIRMED! 🏆';
-      Confetti.burst(120);
-      SoundFX.levelUp();
+      vBadge.className = 'verdict-badge pass';
+      vBadge.textContent = 'DISTINCTION — REGULARISATION CONFIRMED! 🏆';
+      Confetti.burst(100);
     } else if (pct >= 50) {
-      verdictBadge.className = 'verdict-badge pass';
-      verdictBadge.textContent = 'PASSED — REGULARISATION SUCCESSFUL! 🎓';
-      Confetti.burst(60);
-      SoundFX.streak();
+      vBadge.className = 'verdict-badge pass';
+      vBadge.textContent = 'PASSED — REGULARISATION SUCCESSFUL! 🎓';
+      Confetti.burst(50);
     } else {
-      verdictBadge.className = 'verdict-badge fail';
-      verdictBadge.textContent = 'NEEDS DRILL — DRILL WEAK AREAS BEFORE CBT ⚠️';
-      SoundFX.wrong();
+      vBadge.className = 'verdict-badge fail';
+      vBadge.textContent = 'NEEDS DRILL — REVIEW MISSED TOPICS ⚠️';
     }
 
-    pillarsContainer.innerHTML = '';
+    pContainer.innerHTML = '';
     Object.values(pillars).forEach(p => {
       const pPct = p.total > 0 ? Math.round((p.correct / p.total) * 100) : 0;
       const card = document.createElement('div');
@@ -915,18 +695,100 @@
       card.innerHTML = `
         <div class="pillar-card-title">${p.title}</div>
         <div class="pillar-card-score">
-          <span>${p.correct} / ${p.total}</span>
-          <span style="color:${pPct >= 70 ? '#34d399' : pPct >= 50 ? '#fbbf24' : '#f87171'}">${pPct}%</span>
+          <span>${p.correct}/${p.total}</span>
+          <span style="color:${pPct >= 70 ? '#10b981' : pPct >= 50 ? '#f59e0b' : '#ef4444'}">${pPct}%</span>
         </div>
       `;
-      pillarsContainer.appendChild(card);
+      pContainer.appendChild(card);
     });
 
     modal.style.display = 'flex';
   }
 
   // --------------------------------------------------------------------------
-  // Lifelines (50:50, Time Freeze, Hint)
+  // Status Mini-Summary Bar (Screen 2 in Reference Image)
+  // --------------------------------------------------------------------------
+  function updateStatusSummary() {
+    const curEl = document.getElementById('stat-current-num');
+    const ansEl = document.getElementById('stat-answered-count');
+    const flagEl = document.getElementById('stat-flagged-count');
+    const unansEl = document.getElementById('stat-unanswered-count');
+
+    if (curEl) curEl.textContent = state.currentIdx + 1;
+
+    let ansCount = 0;
+    let flagCount = 0;
+    const total = state.deck.length;
+
+    if (state.mode === 'EXAM') {
+      ansCount = state.exam.userAnswers.filter(a => a !== -1).length;
+      flagCount = state.exam.flagged.size;
+    } else {
+      ansCount = state.attempted;
+      flagCount = state.flagged.size;
+    }
+
+    if (ansEl) ansEl.textContent = ansCount;
+    if (flagEl) flagEl.textContent = flagCount;
+    if (unansEl) unansEl.textContent = Math.max(0, total - ansCount);
+  }
+
+  // --------------------------------------------------------------------------
+  // Bottom Sheet Question Navigation Matrix
+  // --------------------------------------------------------------------------
+  function openMatrixSheet() {
+    const overlay = document.getElementById('matrix-sheet-overlay');
+    const grid = document.getElementById('sheet-matrix-grid');
+    if (!overlay || !grid) return;
+
+    grid.innerHTML = '';
+    state.deck.forEach((q, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'sheet-tile-btn';
+      btn.textContent = idx + 1;
+
+      if (idx === state.currentIdx) btn.classList.add('current');
+
+      if (state.mode === 'EXAM') {
+        if (state.exam.flagged.has(idx)) btn.classList.add('flagged');
+        else if (state.exam.userAnswers[idx] !== -1) btn.classList.add('answered');
+      } else {
+        if (state.flagged.has(q.id)) btn.classList.add('flagged');
+      }
+
+      btn.onclick = () => {
+        state.currentIdx = idx;
+        renderCurrentQuestion();
+        closeMatrixSheet();
+      };
+
+      grid.appendChild(btn);
+    });
+
+    overlay.style.display = 'flex';
+  }
+
+  function closeMatrixSheet() {
+    const overlay = document.getElementById('matrix-sheet-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  function jumpToNumber() {
+    const input = document.getElementById('sheet-jump-input');
+    if (!input) return;
+    const val = parseInt(input.value, 10);
+    if (isNaN(val) || val < 1 || val > state.deck.length) {
+      alert(`Please enter a number between 1 and ${state.deck.length}`);
+      return;
+    }
+    state.currentIdx = val - 1;
+    renderCurrentQuestion();
+    closeMatrixSheet();
+    input.value = '';
+  }
+
+  // --------------------------------------------------------------------------
+  // Lifelines (Practice Mode)
   // --------------------------------------------------------------------------
   function use5050() {
     if (state.answeredInCurrent || state.lifelines.fifties <= 0) return;
@@ -935,24 +797,18 @@
 
     state.lifelines.fifties--;
     updateLifelineButtons();
-    SoundFX.lifeline();
 
-    // Pick two incorrect options to eliminate
-    const wrongIndices = [0, 1, 2, 3].filter(i => i !== item.ans);
-    const toEliminate = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
-
-    toEliminate.forEach(idx => {
-      const btn = document.getElementById(`opt-btn-${idx}`);
-      if (btn) btn.classList.add('eliminated');
+    const wrongIndices = [0, 1, 2, 3].filter(i => i !== item.ans).sort(() => Math.random() - 0.5).slice(0, 2);
+    wrongIndices.forEach(idx => {
+      const card = document.getElementById(`opt-card-${idx}`);
+      if (card) card.classList.add('eliminated');
     });
   }
 
-  function useTimeFreeze() {
+  function useFreeze() {
     if (state.answeredInCurrent || state.lifelines.freezes <= 0) return;
     state.lifelines.freezes--;
     updateLifelineButtons();
-    SoundFX.lifeline();
-
     state.timeLeft += 30;
     updateTimerUI();
   }
@@ -961,218 +817,67 @@
     if (state.answeredInCurrent || state.lifelines.hints <= 0) return;
     state.lifelines.hints--;
     updateLifelineButtons();
-    SoundFX.lifeline();
 
     const item = state.deck[state.currentIdx];
-    const hintPanel = document.getElementById('hint-panel');
+    const hintBox = document.getElementById('hint-panel');
     const hintText = document.getElementById('hint-text');
 
-    hintText.textContent = generateHint(item);
-    hintPanel.style.display = 'block';
+    if (hintBox && hintText) {
+      hintText.textContent = item.exp ? item.exp.slice(0, 100) + '...' : 'Recall core UNIOSUN rules.';
+      hintBox.style.display = 'block';
+    }
   }
 
   function updateLifelineButtons() {
-    document.getElementById('count-5050').textContent = state.lifelines.fifties;
-    document.getElementById('count-freeze').textContent = state.lifelines.freezes;
-    document.getElementById('count-hint').textContent = state.lifelines.hints;
+    const c5050 = document.getElementById('count-5050');
+    const cFreeze = document.getElementById('count-freeze');
+    const cHint = document.getElementById('count-hint');
 
-    document.getElementById('lifeline-5050').disabled = state.lifelines.fifties <= 0;
-    document.getElementById('lifeline-freeze').disabled = state.lifelines.freezes <= 0;
-    document.getElementById('lifeline-hint').disabled = state.lifelines.hints <= 0;
+    if (c5050) c5050.textContent = state.lifelines.fifties;
+    if (cFreeze) cFreeze.textContent = state.lifelines.freezes;
+    if (cHint) cHint.textContent = state.lifelines.hints;
   }
 
   // --------------------------------------------------------------------------
-  // Bookmark & Vault Functions
+  // Vault & Screen Navigation
   // --------------------------------------------------------------------------
-  function toggleBookmark() {
-    const item = state.deck[state.currentIdx];
-    if (!item || item.id === 0) return;
-
-    if (state.vault.has(item.id)) {
-      state.vault.delete(item.id);
-    } else {
-      state.vault.add(item.id);
-    }
-
-    localStorage.setItem('uniosun_vault', JSON.stringify([...state.vault]));
-    updateVaultBadges();
-
-    const isBookmarked = state.vault.has(item.id);
-    const bookmarkBtn = document.getElementById('bookmark-btn');
-    bookmarkBtn.classList.toggle('bookmarked', isBookmarked);
-    document.getElementById('bookmark-text').textContent = isBookmarked ? 'Bookmarked' : 'Bookmark';
-  }
-
-  function updateVaultBadges() {
+  function updateVaultUI() {
     const count = new Set([...state.vault, ...state.missed]).size;
-    const badge1 = document.getElementById('vault-count-badge');
-    const badge2 = document.getElementById('tab-vault-count');
-    if (badge1) badge1.textContent = `Vault (${count})`;
-    if (badge2) badge2.textContent = count;
+    const bCount = document.getElementById('bottom-vault-count');
+    const vTotal = document.getElementById('vault-total-count');
+
+    if (bCount) bCount.textContent = count;
+    if (vTotal) vTotal.textContent = count;
   }
 
-  // --------------------------------------------------------------------------
-  // Navigation: Next, Prev, Shuffle
-  // --------------------------------------------------------------------------
-  function nextQuestion() {
-    if (state.deck.length === 0) return;
-    state.currentIdx = (state.currentIdx + 1) % state.deck.length;
-    renderCurrentQuestion();
-  }
+  function switchScreen(screenId) {
+    state.currentScreen = screenId;
 
-  function prevQuestion() {
-    if (state.deck.length === 0) return;
-    state.currentIdx = (state.currentIdx - 1 + state.deck.length) % state.deck.length;
-    renderCurrentQuestion();
-  }
-
-  function shuffleDeck() {
-    state.deck.sort(() => Math.random() - 0.5);
-    state.currentIdx = 0;
-    renderCurrentQuestion();
-  }
-
-  // --------------------------------------------------------------------------
-  // Mode & Filter Switchers
-  // --------------------------------------------------------------------------
-  function setMode(mode) {
-    state.mode = mode;
-
-    document.querySelectorAll('.mode-tab').forEach(t => {
-      t.classList.toggle('active', t.getAttribute('data-mode') === mode);
+    document.querySelectorAll('.app-screen').forEach(s => {
+      s.classList.toggle('active', s.id === screenId);
     });
 
-    const filterContainer = document.getElementById('filter-container');
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.getAttribute('data-target') === screenId);
+    });
 
-    if (mode === 'PRACTICE') {
-      filterContainer.style.display = 'flex';
-      clearInterval(state.exam.timerInterval);
-      state.exam.active = false;
-      loadDeck();
-    } else if (mode === 'EXAM') {
-      filterContainer.style.display = 'none';
-      startExamMode();
-    } else if (mode === 'VAULT') {
-      filterContainer.style.display = 'none';
-      clearInterval(state.exam.timerInterval);
-      state.exam.active = false;
-      loadDeck();
+    if (screenId === 'screen-profile') {
+      updateRankUI();
     }
   }
 
-  function setFilter(cat, btn) {
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    state.filterCat = cat;
-    loadDeck();
-  }
-
-  // --------------------------------------------------------------------------
-  // Keyboard Shortcuts
-  // --------------------------------------------------------------------------
-  function handleKeyDown(e) {
-    // If typing in input, ignore
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-    const key = e.key.toUpperCase();
-
-    // Options 1, 2, 3, 4 or A, B, C, D
-    if (key === '1' || key === 'A') {
-      triggerOptionPress(0);
-    } else if (key === '2' || key === 'B') {
-      triggerOptionPress(1);
-    } else if (key === '3' || key === 'C') {
-      triggerOptionPress(2);
-    } else if (key === '4' || key === 'D') {
-      triggerOptionPress(3);
-    } else if (e.key === ' ' || e.key === 'Enter') {
-      // Space or Enter for Next
-      e.preventDefault();
-      if (state.mode === 'PRACTICE') {
-        if (state.answeredInCurrent) {
-          nextQuestion();
-        }
-      } else {
-        nextQuestion();
-      }
-    } else if (key === 'F') {
-      use5050();
-    } else if (key === 'T') {
-      useTimeFreeze();
-    } else if (key === 'H') {
-      useHint();
-    } else if (key === 'B') {
-      toggleBookmark();
-    } else if (e.key === 'ArrowRight') {
-      nextQuestion();
-    } else if (e.key === 'ArrowLeft') {
-      prevQuestion();
-    }
-  }
-
-  function triggerOptionPress(idx) {
-    const btn = document.getElementById(`opt-btn-${idx}`);
-    if (btn && !btn.disabled) {
-      btn.click();
-    }
-  }
-
-  // --------------------------------------------------------------------------
-  // Theme Switcher (Light / Dark)
-  // --------------------------------------------------------------------------
   function applyTheme(theme) {
     state.theme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('uniosun_theme', theme);
-    const themeIcon = document.getElementById('theme-icon');
-    if (themeIcon) {
-      themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
-    }
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
   }
 
   function toggleTheme() {
-    const nextTheme = state.theme === 'light' ? 'dark' : 'light';
-    applyTheme(nextTheme);
+    applyTheme(state.theme === 'light' ? 'dark' : 'light');
   }
 
-  // --------------------------------------------------------------------------
-  // Quick Jump to Specific Question (1 - 200)
-  // --------------------------------------------------------------------------
-  function jumpToQuestion() {
-    const input = document.getElementById('jump-input');
-    if (!input) return;
-    const num = parseInt(input.value, 10);
-    if (isNaN(num) || num < 1 || num > 200) {
-      alert("Please enter a question number between 1 and 200.");
-      return;
-    }
-
-    if (state.mode === 'EXAM') {
-      const idx = num - 1;
-      if (idx < state.deck.length) {
-        state.currentIdx = idx;
-        renderCurrentQuestion();
-      }
-      return;
-    }
-
-    // In Practice mode: if not on ALL, switch to ALL so target question is in deck
-    if (state.filterCat !== 'ALL') {
-      const allBtn = document.querySelector('.filter-chip[data-cat="ALL"]');
-      if (allBtn) setFilter('ALL', allBtn);
-    }
-
-    const targetIdx = state.deck.findIndex(q => q.id === num);
-    if (targetIdx !== -1) {
-      state.currentIdx = targetIdx;
-      renderCurrentQuestion();
-      input.value = '';
-    }
-  }
-
-  // --------------------------------------------------------------------------
-  // Sound FX Toggle
-  // --------------------------------------------------------------------------
   function toggleSound() {
     state.soundEnabled = !state.soundEnabled;
     localStorage.setItem('uniosun_sound', state.soundEnabled ? 'true' : 'false');
@@ -1181,81 +886,78 @@
   }
 
   // --------------------------------------------------------------------------
-  // Cram Sheet Drawer
-  // --------------------------------------------------------------------------
-  function openCramSheet() {
-    document.getElementById('cram-drawer').style.display = 'flex';
-  }
-
-  function closeCramSheet() {
-    document.getElementById('cram-drawer').style.display = 'none';
-  }
-
-  // --------------------------------------------------------------------------
-  // Initialization & Event Binding
+  // App Initialization
   // --------------------------------------------------------------------------
   function init() {
     Confetti.init();
     applyTheme(state.theme);
     updateRankUI();
     updateLifelineButtons();
-    updateVaultBadges();
+    updateVaultUI();
 
-    // Theme toggle
-    const themeBtn = document.getElementById('theme-toggle-btn');
-    if (themeBtn) themeBtn.onclick = toggleTheme;
-
-    // Quick Jump button and Enter key
-    const jumpBtn = document.getElementById('jump-btn');
-    const jumpInput = document.getElementById('jump-input');
-    if (jumpBtn) jumpBtn.onclick = jumpToQuestion;
-    if (jumpInput) {
-      jumpInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          jumpToQuestion();
-        }
-      });
-    }
-
-    // Sound toggle state
-    const soundIcon = document.getElementById('sound-icon');
-    if (soundIcon) soundIcon.textContent = state.soundEnabled ? '🔊' : '🔇';
-
-    // Tabs
-    document.getElementById('tab-practice').onclick = () => setMode('PRACTICE');
-    document.getElementById('tab-exam').onclick = () => setMode('EXAM');
-    document.getElementById('tab-vault').onclick = () => setMode('VAULT');
-
-    // Filter Chips
-    document.querySelectorAll('.filter-chip').forEach(btn => {
-      btn.onclick = () => setFilter(btn.getAttribute('data-cat'), btn);
-    });
-
-    // Control Buttons
-    document.getElementById('next-btn').onclick = () => nextQuestion();
-    document.getElementById('prev-btn').onclick = () => prevQuestion();
-    document.getElementById('shuffle-btn').onclick = () => shuffleDeck();
-    document.getElementById('submit-exam-btn').onclick = () => submitExam(false);
-    document.getElementById('flag-btn').onclick = () => toggleFlagQuestion();
-
-    // Lifeline buttons
-    document.getElementById('lifeline-5050').onclick = use5050;
-    document.getElementById('lifeline-freeze').onclick = useTimeFreeze;
-    document.getElementById('lifeline-hint').onclick = useHint;
-
-    // Bookmarks & Sound
-    document.getElementById('bookmark-btn').onclick = toggleBookmark;
-    document.getElementById('sound-toggle-btn').onclick = toggleSound;
-
-    // Cram Sheet
-    document.getElementById('open-cram-btn').onclick = openCramSheet;
-    document.getElementById('close-cram-btn').onclick = closeCramSheet;
-    document.getElementById('cram-drawer').onclick = (e) => {
-      if (e.target.id === 'cram-drawer') closeCramSheet();
+    // Mode Buttons
+    document.getElementById('mode-btn-practice').onclick = () => {
+      state.mode = 'PRACTICE';
+      document.getElementById('mode-btn-practice').classList.add('active');
+      document.getElementById('mode-btn-exam').classList.remove('active');
+      clearInterval(state.exam.timerInterval);
+      loadDeck();
     };
 
-    // Results Modal
+    document.getElementById('mode-btn-exam').onclick = () => {
+      state.mode = 'EXAM';
+      document.getElementById('mode-btn-exam').classList.add('active');
+      document.getElementById('mode-btn-practice').classList.remove('active');
+      startExamMode();
+    };
+
+    // Category Select
+    const pillarSelect = document.getElementById('pillar-select');
+    if (pillarSelect) {
+      pillarSelect.onchange = (e) => {
+        state.filterCat = e.target.value;
+        loadDeck();
+      };
+    }
+
+    // Bottom Navigation Tabs
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.onclick = () => switchScreen(tab.getAttribute('data-target'));
+    });
+
+    // Navigation Buttons
+    document.getElementById('next-btn').onclick = () => {
+      state.currentIdx = (state.currentIdx + 1) % state.deck.length;
+      renderCurrentQuestion();
+    };
+
+    document.getElementById('prev-btn').onclick = () => {
+      state.currentIdx = (state.currentIdx - 1 + state.deck.length) % state.deck.length;
+      renderCurrentQuestion();
+    };
+
+    document.getElementById('submit-exam-btn').onclick = () => submitExam(false);
+
+    // Matrix Sheet Triggers
+    document.getElementById('matrix-trigger-btn').onclick = openMatrixSheet;
+    document.getElementById('close-sheet-btn').onclick = closeMatrixSheet;
+    document.getElementById('matrix-sheet-overlay').onclick = (e) => {
+      if (e.target.id === 'matrix-sheet-overlay') closeMatrixSheet();
+    };
+    document.getElementById('sheet-jump-btn').onclick = jumpToNumber;
+
+    // Flag & Lifelines
+    document.getElementById('flag-btn').onclick = toggleFlag;
+    document.getElementById('hint-btn').onclick = useHint;
+    document.getElementById('lifeline-5050').onclick = use5050;
+    document.getElementById('lifeline-freeze').onclick = useFreeze;
+    document.getElementById('lifeline-hint').onclick = useHint;
+
+    // Top Header Buttons
+    document.getElementById('theme-toggle-btn').onclick = toggleTheme;
+    document.getElementById('sound-toggle-btn').onclick = toggleSound;
+
+    // Results Modal Buttons
     document.getElementById('close-results-btn').onclick = () => {
       document.getElementById('results-modal').style.display = 'none';
     };
@@ -1269,29 +971,40 @@
       startExamMode();
     };
 
-    // Header Vault Button
-    document.getElementById('open-vault-btn').onclick = () => setMode('VAULT');
-
-    // Rank Badge click info
-    document.getElementById('rank-badge').onclick = () => {
-      const rank = getCurrentRank(state.xp);
-      alert(
-        `🏛️ UNIOSUN Academic Career Progression\n\n` +
-        `Current Rank: ${rank.title} (Level ${rank.level})\n` +
-        `Total XP: ${state.xp.toLocaleString()}\n` +
-        `Next Rank Target: ${rank.maxXp.toLocaleString()} XP\n\n` +
-        `Answer quickly and build streaks to climb the hierarchy all the way to Substantive Vice-Chancellor!`
-      );
+    // Vault Drill Button
+    document.getElementById('drill-vault-btn').onclick = () => {
+      state.mode = 'VAULT';
+      switchScreen('screen-arena');
+      loadDeck();
     };
 
-    // Keyboard events
-    window.addEventListener('keydown', handleKeyDown);
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      const k = e.key.toUpperCase();
+      if (k === '1' || k === 'A') {
+        const c = document.getElementById('opt-card-0');
+        if (c) c.click();
+      } else if (k === '2' || k === 'B') {
+        const c = document.getElementById('opt-card-1');
+        if (c) c.click();
+      } else if (k === '3' || k === 'C') {
+        const c = document.getElementById('opt-card-2');
+        if (c) c.click();
+      } else if (k === '4' || k === 'D') {
+        const c = document.getElementById('opt-card-3');
+        if (c) c.click();
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        state.currentIdx = (state.currentIdx + 1) % state.deck.length;
+        renderCurrentQuestion();
+      }
+    });
 
-    // Initial Load
+    // Start with Practice Deck
     loadDeck();
   }
 
-  // Run on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
