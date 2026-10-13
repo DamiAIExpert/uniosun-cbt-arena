@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>UNIOSUN CBT Arena — Staff Regularisation 2026</title>
+  <meta name="description" content="Official 200-Question CBT Drill & Simulator for Osun State University Regularisation. Mobile-first PWA." />
+  
+  <!-- PWA & Mobile App Native Meta Tags -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#059669" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="UNIOSUN CBT" />
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <!-- Canvas for Confetti celebrations -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Top Navigation App Bar -->
+  <header class="navbar">
+    <div class="brand" id="brand-home" title="UNIOSUN CBT Home">
+      <div class="brand-crest">🏛️</div>
+      <div class="brand-text">
+        <h1>UNIOSUN CBT</h1>
+        <p>Living Spring of Knowledge • Regularisation</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <!-- Academic Rank / XP Badge -->
+      <div class="level-badge-container" id="rank-badge" title="Your Academic Rank and XP Progression">
+        <div class="rank-icon-wrapper" id="rank-icon">🎓</div>
+        <div class="rank-info">
+          <span class="rank-title" id="rank-title">Graduate Assistant</span>
+          <span class="rank-xp" id="rank-xp-text">0 / 250 XP (Lvl 1)</span>
+        </div>
+      </div>
+
+      <!-- Quick Cram Sheet Button -->
+      <button class="icon-btn cram-btn" id="open-cram-btn" title="Open High-Yield Must-Know Cram Sheet">
+        ⚡ <span>Cram Sheet</span>
+      </button>
+
+      <!-- Review Missed / Vault Trigger -->
+      <button class="icon-btn" id="open-vault-btn" title="Review Flagged & Missed Questions">
+        🔖 <span id="vault-count-badge">Vault (0)</span>
+      </button>
+
+      <!-- Theme Switcher (☀️ Light / 🌙 Dark) -->
+      <button class="icon-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+        <span id="theme-icon">🌙</span>
+      </button>
+
+      <!-- Sound FX Toggle -->
+      <button class="icon-btn" id="sound-toggle-btn" title="Toggle Sound Effects">
+        <span id="sound-icon">🔊</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+    <!-- Mode Selection Tabs -->
+    <div class="mode-bar">
+      <button class="mode-tab active" data-mode="PRACTICE" id="tab-practice">
+        ⚡ <span>Mastery Drill</span>
+      </button>
+      <button class="mode-tab" data-mode="EXAM" id="tab-exam">
+        🏛️ <span>Mock CBT (60Q)</span>
+      </button>
+      <button class="mode-tab" data-mode="VAULT" id="tab-vault">
+        🎯 <span>Vault (<span id="tab-vault-count">0</span>)</span>
+      </button>
+    </div>
+
+    <!-- Pillars Filter Bar (Shown in Practice Mode) -->
+    <div class="filter-container" id="filter-container">
+      <button class="filter-chip active" data-cat="ALL">
+        🌐 All Pillars <span class="count">200</span>
+      </button>
+      <button class="filter-chip" data-cat="IT">
+        💻 IT &amp; Computing <span class="count">80</span>
+      </button>
+      <button class="filter-chip" data-cat="UNIOSUN">
+        🏛️ UNIOSUN &amp; Osun <span class="count">50</span>
+      </button>
+      <button class="filter-chip" data-cat="PEDAGOGY">
+        📚 Pedagogy &amp; Ethics <span class="count">40</span>
+      </button>
+      <button class="filter-chip" data-cat="APTITUDE">
+        🧠 Aptitude &amp; Logic <span class="count">30</span>
+      </button>
+    </div>
+
+    <!-- Quick Jump to Any Question -->
+    <div class="quick-jump-bar" id="quick-jump-bar">
+      <div class="jump-label">
+        <span>🎯 Jump directly to Question:</span>
+      </div>
+      <div class="jump-control">
+        <input type="number" id="jump-input" class="jump-input" min="1" max="200" placeholder="1-200" />
+        <button class="jump-btn" id="jump-btn">Go</button>
+      </div>
+    </div>
+
+    <!-- Central Arena Card -->
+    <div class="arena-card">
+      <!-- Heads Up Display (HUD) -->
+      <div class="hud">
+        <div class="hud-group">
+          <div class="hud-stat" id="score-display">
+            🎯 Score: <strong id="stat-score" style="color:var(--emerald-main);">0</strong> / <span id="stat-attempted">0</span> (<span id="stat-pct">0%</span>)
+          </div>
+          <div class="hud-stat streak-badge" id="streak-badge">
+            🔥 Streak: <strong id="stat-streak">0</strong>
+          </div>
+        </div>
+
+        <div class="hud-group">
+          <!-- Lifelines (Practice Mode) -->
+          <div class="lifelines-row" id="lifelines-row">
+            <button class="lifeline-btn" id="lifeline-5050" title="Eliminate 2 wrong answers [Press 'F']">
+              ⚡ 50:50 <span class="lifeline-count" id="count-5050">3</span>
+            </button>
+            <button class="lifeline-btn" id="lifeline-freeze" title="Freeze / Add 30s timer [Press 'T']">
+              ⏳ +30s <span class="lifeline-count" id="count-freeze">3</span>
+            </button>
+            <button class="lifeline-btn" id="lifeline-hint" title="Reveal memory clue [Press 'H']">
+              💡 Hint <span class="lifeline-count" id="count-hint">3</span>
+            </button>
+          </div>
+
+          <!-- Timer Badge -->
+          <div class="hud-stat timer-badge" id="timer-badge">
+            ⏱️ <span id="stat-timer">25</span>s
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Track -->
+      <div class="progress-wrapper">
+        <div class="progress-header">
+          <span id="progress-text">Question 1 of 200</span>
+          <span id="session-progress-pct">0% Completed</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <!-- Question Metadata Header -->
+      <div class="q-meta">
+        <span class="category-tag" id="q-category">IT &amp; COMPUTING</span>
+        <span class="part-tag" id="q-part">Part A: Computer Networks</span>
+        <button class="bookmark-toggle-btn" id="bookmark-btn" title="Bookmark this question [Press 'B']">
+          ⭐ <span id="bookmark-text">Bookmark</span>
+        </button>
+      </div>
+
+      <!-- Question Text -->
+      <h2 class="question-prompt" id="q-prompt">
+        Loading question bank...
+      </h2>
+
+      <!-- Hint Panel (Initially Hidden) -->
+      <div class="hint-panel" id="hint-panel">
+        <strong>💡 Academic Hint:</strong> <span id="hint-text"></span>
+      </div>
+
+      <!-- Interactive Options Grid -->
+      <div class="options-grid" id="options-container">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Immediate Feedback & Explanation Drawer -->
+      <div class="explanation-panel" id="explanation-panel">
+        <div class="explanation-header" id="explanation-header">
+          <span id="feedback-icon">✅</span> <span id="feedback-verdict">Correct!</span>
+        </div>
+        <div class="explanation-body" id="explanation-text">
+          <!-- Detailed justification here -->
+        </div>
+      </div>
+
+      <!-- Navigation & Action Controls -->
+      <div class="arena-controls">
+        <div class="action-btn-group">
+          <button class="btn-secondary" id="prev-btn" title="Previous Question">
+            ⬅️ Prev
+          </button>
+          <button class="btn-secondary" id="shuffle-btn" title="Shuffle Current Questions Deck">
+            🔀 Shuffle
+          </button>
+        </div>
+
+        <div class="action-btn-group">
+          <button class="btn-secondary" id="flag-btn" style="display:none;" title="Flag this question for CBT review">
+            🚩 Flag
+          </button>
+          <button class="btn-primary" id="next-btn" title="Next Question [Space / Enter]">
+            Next Question ➔
+          </button>
+          <button class="btn-primary" id="submit-exam-btn" style="display:none;background:var(--gold-main);color:#ffffff;" title="Finish and Submit Exam">
+            🏁 Submit Exam
+          </button>
+        </div>
+      </div>
+
+      <!-- Question Matrix (CBT Mock Exam Mode Only) -->
+      <div class="cbt-matrix-panel" id="cbt-matrix-panel" style="display: none;">
+        <div class="matrix-header">
+          <span class="matrix-title">CBT Navigation Matrix</span>
+          <div class="matrix-legend">
+            <div class="legend-item"><div class="legend-dot unanswered"></div> Unanswered</div>
+            <div class="legend-item"><div class="legend-dot answered"></div> Answered</div>
+            <div class="legend-item"><div class="legend-dot flagged"></div> Flagged</div>
+            <div class="legend-item"><div class="legend-dot current"></div> Current</div>
+          </div>
+        </div>
+        <div class="matrix-grid" id="matrix-grid">
+          <!-- Dynamically generated buttons for Q1 to Q60 -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- High-Yield Cram Sheet Slide-Over Drawer -->
+  <div class="drawer-overlay" id="cram-drawer">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title">⚡ UNIOSUN High-Yield Cram Sheet</div>
+        <button class="modal-close-btn" id="close-cram-btn">✕</button>
+      </div>
+
+      <!-- Pillar 1: UNIOSUN Fast Facts -->
+      <div class="cram-section">
+        <h3>🏛️ UNIOSUN Identity &amp; Key Dates</h3>
+        <ul class="cram-list">
+          <li><strong>Licensing Date:</strong> <span class="cram-highlight">December 21, 2006</span> (30th State University, 80th University in Nigeria).</li>
+          <li><strong>Law Enacted:</strong> Passed in 2006 under <strong>Prince Olagunsoye Oyinlola</strong>.</li>
+          <li><strong>Academic Inception:</strong> Students commenced in <span class="cram-highlight">September 2007</span>.</li>
+          <li><strong>Foundation Day:</strong> <span class="cram-highlight">September 21</span> annually.</li>
+          <li><strong>20th Anniversary Milestone:</strong> <span class="cram-highlight">December 21, 2026</span>.</li>
+          <li><strong>Official Motto:</strong> <span class="cram-highlight">"Living Spring of Knowledge and Culture"</span> (Do NOT confuse with OAU's "For Learning and Culture").</li>
+          <li><strong>Statutory Visitor:</strong> Executive Governor of Osun State, <strong>Sen. Ademola Jackson Nurudeen Adeleke</strong>.</li>
+        </ul>
+      </div>
+
+      <!-- Pillar 2: Principal Officers -->
+      <div class="cram-section">
+        <h3>👥 Current Principal Officers</h3>
+        <ul class="cram-list">
+          <li><strong>Chancellor (3rd):</strong> <span class="cram-highlight">Dr. (Mrs.) Victoria Olufunmilayo Samson</span> (Mama BOVAS; succeeded Apostle Folorunso Alakija). Pioneer was late Oba Okunade Sijuwade.</li>
+          <li><strong>Pro-Chancellor &amp; Council Chairman:</strong> <span class="cram-highlight">Prof. Wale Oladipo</span> (Pioneer was Prof. Peter Okebukola).</li>
+          <li><strong>Vice-Chancellor (4th Substantive):</strong> <span class="cram-highlight">Prof. Odunayo Clement Adebooye</span> (Specialist: Agronomy / Plant Physiology).</li>
+          <li><strong>DVC (Academic, Research, Innovation &amp; Partnerships - ARIP):</strong> <span class="cram-highlight">Prof. Adetunji Lawrence Kehinde</span>.</li>
+          <li><strong>DVC (Administration &amp; Development):</strong> <span class="cram-highlight">Prof. Morufu O. Olayiwola</span>.</li>
+          <li><strong>Registrar (3rd Substantive):</strong> <span class="cram-highlight">Mrs. Atinuke Abosede Oguntunde</span>.</li>
+          <li><strong>Bursar (3rd Substantive):</strong> <span class="cram-highlight">Mr. Muideen Akintayo Lasisi</span>.</li>
+          <li><strong>Librarian (3rd Substantive):</strong> <span class="cram-highlight">Dr. Olugbenga Wale Adewuyi</span>.</li>
+        </ul>
+      </div>
+
+      <!-- Pillar 3: Multi-Campus Distribution -->
+      <div class="cram-section">
+        <h3>🗺️ Multi-Campus Distribution (7 Colleges, 6 Campuses)</h3>
+        <ul class="cram-list">
+          <li><strong>Osogbo (Main Campus, Oke-Baale):</strong> College of Science, Engineering &amp; Technology (SET), College of Health Sciences, and Faculty of Computing &amp; IT (FCIT).</li>
+          <li><strong>Okuku Campus:</strong> College of Management and Social Sciences.</li>
+          <li><strong>Ikire Campus:</strong> College of Humanities and Culture.</li>
+          <li><strong>Ejigbo Campus:</strong> College of Agriculture.</li>
+          <li><strong>Ifetedo Campus:</strong> College of Law.</li>
+          <li><strong>Ipetu-Ijesa Campus:</strong> College of Education.</li>
+        </ul>
+      </div>
+
+      <!-- Pillar 4: Osun State Facts -->
+      <div class="cram-section">
+        <h3>🌴 Osun State Profile</h3>
+        <ul class="cram-list">
+          <li><strong>Creation:</strong> Created <span class="cram-highlight">August 27, 1991</span> by Gen. Ibrahim Babangida from old Oyo State.</li>
+          <li><strong>Local Governments:</strong> <span class="cram-highlight">30 LGAs + 1 Area Office</span> (Ife East Area Office, Modakeke).</li>
+          <li><strong>Governance:</strong> 3 Senatorial Districts, 9 Federal Constituencies, 26 State Assembly seats.</li>
+          <li><strong>First Civilian Governor:</strong> Sen. Isiaka Adetunji Adeleke (1992-1993).</li>
+          <li><strong>First 4th Republic Governor:</strong> Chief Adebisi Akande (1999-2003).</li>
+          <li><strong>Speaker (8th Assembly):</strong> Rt. Hon. Adewale Olumide Egbedun.</li>
+          <li><strong>Chief Judge:</strong> Hon. Justice Oyebola Adepele Ojo.</li>
+          <li><strong>SSG / CoS / HoS:</strong> SSG: Hon. Teslim Igbalaye; CoS: Alhaji Kazeem Akinleye; HoS: Elder Samuel Ayanleye Aina.</li>
+          <li><strong>Landmarks:</strong> Osun-Osogbo Sacred Grove (UNESCO World Heritage, 2005); Olumirin Waterfalls (Erin-Ijesha, Oriade LGA).</li>
+        </ul>
+      </div>
+
+      <!-- Pillar 5: Pedagogy & Assessment -->
+      <div class="cram-section">
+        <h3>📚 Pedagogy, NUC &amp; Assessment</h3>
+        <ul class="cram-list">
+          <li><strong>Lecturer Triad:</strong> Teaching, Research, and Community Service.</li>
+          <li><strong>CCMAS:</strong> Core Curriculum &amp; Minimum Academic Standards (replaced BMAS). Split is <span class="cram-highlight">70% NUC National Core / 30% University Local Peculiarity</span>.</li>
+          <li><strong>Attendance Rule:</strong> Minimum <span class="cram-highlight">75% attendance</span> required to sit for semester examinations.</li>
+          <li><strong>1 Credit Unit:</strong> 1 lecture hour per week for 15 weeks (15 contact hours); or 3 laboratory hours per week.</li>
+          <li><strong>Academic Hierarchy:</strong> GA ➔ AL ➔ LII ➔ LI ➔ Senior Lecturer ➔ Reader (Assoc. Prof.) ➔ Professor.</li>
+          <li><strong>Bloom's Taxonomy:</strong> Remembering ➔ Understanding ➔ Applying ➔ Analyzing ➔ Evaluating ➔ Creating.</li>
+          <li><strong>Domains:</strong> Cognitive (Knowledge/Head), Affective (Values/Heart/Character), Psychomotor (Skills/Hand).</li>
+          <li><strong>Grading Scale:</strong> A (70-100%, 5.0), B (60-69%, 4.0), C (50-59%, 3.0), D (45-49%, 2.0), E (40-44%, 1.0), F (0-39%, 0.0). 2:2 Degree = 2.40 to 3.49 CGPA.</li>
+          <li><strong>Ethics:</strong> Salami Slicing = splitting one study into minimal papers; Fabrication = inventing fake data; Falsification = altering real data; Gift Authorship = co-author without intellectual contribution.</li>
+        </ul>
+      </div>
+
+      <!-- Pillar 6: Key National Figures -->
+      <div class="cram-section">
+        <h3>🇳🇬 National Leadership Current Affairs</h3>
+        <ul class="cram-list">
+          <li><strong>Minister of Education:</strong> Dr. Maruf Tunji Alausa (State: Prof. Suwaiba Said Ahmad).</li>
+          <li><strong>NUC Executive Secretary:</strong> Prof. Abdullahi Yusufu Ribadu.</li>
+          <li><strong>JAMB / TETFund / NELFUND:</strong> JAMB: Prof. Ishaq Oloyede; TETFund: Arc. Sonny Echono; NELFUND: Mr. Akintunde Sawyerr.</li>
+          <li><strong>Minister of Digital Economy / NITDA:</strong> Dr. Bosun Tijani / Kashifu Inuwa Abdullahi.</li>
+          <li><strong>Chief Justice of Nigeria (CJN):</strong> Hon. Justice Kudirat Motonmori Olatokunbo Kekere-Ekun.</li>
+          <li><strong>National Assembly:</strong> Senate President Godswill Akpabio; Speaker Tajudeen Abbas.</li>
+          <li><strong>CBN Governor:</strong> Olayemi Cardoso.</li>
+          <li><strong>National Anthem:</strong> Lyrics by Lillian Jean Williams; Music by Frances Benda.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CBT Exam Results Modal -->
+  <div class="modal-overlay" id="results-modal">
+    <div class="modal-content">
+      <button class="modal-close-btn" id="close-results-btn">✕</button>
+
+      <div class="result-badge-hero">
+        <div class="verdict-badge pass" id="modal-verdict-badge">REGULARISATION CONFIRMED! 🏆</div>
+        <div class="result-score-large" id="modal-score-pct">85%</div>
+        <div class="result-subtext" id="modal-score-detail">You scored 51 out of 60 questions correctly</div>
+      </div>
+
+      <!-- Pillar Breakdown -->
+      <div class="pillars-breakdown" id="modal-pillars-breakdown">
+        <!-- Dynamically injected -->
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
+        <button class="btn-primary" id="review-exam-answers-btn">
+          📋 Review All Answers
+        </button>
+        <button class="btn-secondary" id="restart-mock-btn">
+          🔄 Retake New Mock Exam
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>Osun State University Staff Regularisation Assessment Preparation Arena</p>
+    <p style="margin-top:4px;">Built with high-yield mastery algorithms • <strong>Best of luck in your regularisation today! Go smash it!</strong></p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
