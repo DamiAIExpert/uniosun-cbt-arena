@@ -551,13 +551,24 @@
   <script src="questions.js"></script>
   <script src="app.js"></script>
 
-  <!-- PWA Service Worker Registration -->
+  <!-- PWA Service Worker Registration with Auto-Update -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
-          .catch(err => console.log('Service Worker registration failed:', err));
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          console.log('PWA Service Worker registered:', reg.scope);
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('New app version installed — reloading to activate');
+                  window.location.reload();
+                }
+              });
+            }
+          });
+        }).catch(err => console.log('Service Worker registration failed:', err));
       });
     }
   </script>
